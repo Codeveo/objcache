@@ -1,0 +1,41 @@
+# generated stuff
+target/
+gen/
+generated/
+test-output/
+bin/
+lib/
+gen/
+proguard/
+app/build/
+build/
+captures/
+
+# IDE genereted
+.settings
+.project
+.classpath
+.idea/
+.gradle/
+*.jar
+*.bin
+*.iml
+*.apk
+
+# used by gradle
+local.properties
+.gradle
+
+# java & gwt compiler
+*.class
+
+# other
+*.bak
+.springBeans
+*.log
+*.log.zip
+.factorypath
+*.db
+
+# security
+private-resources/
