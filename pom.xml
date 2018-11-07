@@ -234,7 +234,7 @@
 
     <modules>
         <module>objcache-api</module>
-        <module>objcache-jpa-impl</module>
+        <module>objcache-impl</module>
         <module>objcache-jpa-starter</module>
         <module>objcache-common</module>
         <module>objcache-config</module>
