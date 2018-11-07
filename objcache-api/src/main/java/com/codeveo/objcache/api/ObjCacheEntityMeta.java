@@ -20,7 +20,7 @@ package com.codeveo.objcache.api;
 import java.time.ZonedDateTime;
 
 /**
- * Document store document definition.
+ * Object cache meta document definition.
  *
  */
 public class ObjCacheEntityMeta {

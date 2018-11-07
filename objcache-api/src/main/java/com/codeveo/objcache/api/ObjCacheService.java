@@ -26,7 +26,7 @@ import java.util.Optional;
 import com.codeveo.objcache.common.ObjCacheException;
 
 /**
- * Index store service.
+ * Object cache service.
  *
  */
 public interface ObjCacheService {
@@ -48,8 +48,7 @@ public interface ObjCacheService {
      * @return objects count
      * @throws ObjCacheException
      */
-    long countByProperties(ObjCacheCollection aCollection, Map<String, Object> someProperties)
-        throws ObjCacheException;
+    long countByProperties(ObjCacheCollection aCollection, Map<String, Object> someProperties) throws ObjCacheException;
 
     /**
      * Create new object
@@ -122,10 +121,7 @@ public interface ObjCacheService {
      * @return object meta data
      * @throws ObjCacheException
      */
-    ObjCacheEntityMeta expire(
-        ObjCacheCollection aCollection,
-        String anObjectKey,
-        final ZonedDateTime anExpirationTime)
+    ObjCacheEntityMeta expire(ObjCacheCollection aCollection, String anObjectKey, final ZonedDateTime anExpirationTime)
         throws ObjCacheException;
 
     /**

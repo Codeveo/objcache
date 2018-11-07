@@ -45,7 +45,7 @@ import com.codeveo.objcache.common.ObjCacheJsonUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * Index store service implementation.
+ * Object cache service implementation.
  *
  */
 public class ObjCacheServiceImpl implements ObjCacheService {
