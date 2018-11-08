@@ -19,6 +19,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.compiler.version>1.8</java.compiler.version>
 
+        <spring.version>5.0.9.RELEASE</spring.version>
+        <jooq.version>3.10.8</jooq.version>
         <testng.version>6.14.3</testng.version>
         <slf4j.version>1.7.25</slf4j.version>
         <logback.version>1.2.3</logback.version>
@@ -28,10 +30,7 @@
         <commons.logging.version>1.2</commons.logging.version>
         <guava.version>26.0-jre</guava.version>
         <jackson.version>2.9.7</jackson.version>
-        <spring.data.version>Lovelace-SR1</spring.data.version>
-        <spring.boot.version>2.0.5.RELEASE</spring.boot.version>
-        <hibernate.version>5.2.17.Final</hibernate.version>
-        <jpa.version>2.0.0</jpa.version>
+        <postgres.version>42.2.5</postgres.version>
 
         <!-- maven plugins -->
         <maven.compiler.plugin.version>3.5.1</maven.compiler.plugin.version>
@@ -49,27 +48,35 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>org.springframework.data</groupId>
-                <artifactId>spring-data-releasetrain</artifactId>
-                <version>${spring.data.version}</version>
-                <scope>import</scope>
-                <type>pom</type>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-context</artifactId>
+                <version>${spring.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-dependencies</artifactId>
-                <version>${spring.boot.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-test</artifactId>
+                <version>${spring.version}</version>
             </dependency>
-
             <dependency>
-                <groupId>org.hibernate</groupId>
-                <artifactId>hibernate-core</artifactId>
-                <version>${hibernate.version}</version>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-tx</artifactId>
+                <version>${spring.version}</version>
             </dependency>
-
-            <!-- Jackson -->
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-jdbc</artifactId>
+                <version>${spring.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jooq</groupId>
+                <artifactId>jooq</artifactId>
+                <version>${jooq.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.postgresql</groupId>
+                <artifactId>postgresql</artifactId>
+                <version>${postgres.version}</version>
+            </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-core</artifactId>
@@ -235,8 +242,8 @@
     <modules>
         <module>objcache-api</module>
         <module>objcache-impl</module>
-        <module>objcache-jpa-starter</module>
         <module>objcache-common</module>
         <module>objcache-config</module>
+        <module>objcache-test</module>
     </modules>
 </project>

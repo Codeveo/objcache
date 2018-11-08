@@ -58,17 +58,17 @@ public class JavaBase64ObjSerializerDeserializer implements ObjCacheSerializerDe
      * @see com.codeveo.objcache.impl.ObjCacheSerializerDeserializer#deserialize(java.lang.String,
      *      java.lang.String, java.lang.String)
      */
-    @SuppressWarnings("unchecked")
     @Override
     public <T extends Serializable> T deserialize(
         final String aCollectionId,
         final String anObjectKey,
-        final String aSerializedObject) {
+        final String aSerializedObject,
+        Class<T> aClass) {
         try {
             final byte[] theData = Base64.getDecoder().decode(aSerializedObject);
 
             try (final ObjectInputStream theOis = new ObjectInputStream(new ByteArrayInputStream(theData))) {
-                return (T) theOis.readObject();
+                return aClass.cast(theOis.readObject());
             }
         } catch (final Exception anException) {
             throw new ObjCacheException(

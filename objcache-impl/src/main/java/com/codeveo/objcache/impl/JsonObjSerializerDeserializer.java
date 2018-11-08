@@ -23,7 +23,6 @@ import com.codeveo.objcache.api.SerializerType;
 import com.codeveo.objcache.common.ObjCacheErrorCodeType;
 import com.codeveo.objcache.common.ObjCacheException;
 import com.codeveo.objcache.common.ObjCacheJsonUtils;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class JsonObjSerializerDeserializer implements ObjCacheSerializerDeserializer {
@@ -59,10 +58,10 @@ public class JsonObjSerializerDeserializer implements ObjCacheSerializerDeserial
     public <T extends Serializable> T deserialize(
         final String aCollectionId,
         final String anObjectKey,
-        final String aSerializedObject) {
+        final String aSerializedObject,
+        Class<T> aClass) {
         try {
-            return MAPPER.readValue(aSerializedObject, new TypeReference<T>() {
-            });
+            return MAPPER.readValue(aSerializedObject, aClass);
         } catch (final Exception anException) {
             throw new ObjCacheException(
                 ObjCacheErrorCodeType.OBJCACHE_EC_0004,

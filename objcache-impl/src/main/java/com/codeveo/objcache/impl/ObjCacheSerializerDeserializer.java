@@ -27,5 +27,9 @@ public interface ObjCacheSerializerDeserializer {
 
     String serialize(String aCollectionId, String anObjectKey, Serializable anObject);
 
-    <T extends Serializable> T deserialize(String aCollectionId, String anObjectKey, String aSerializedObject);
+    <T extends Serializable> T deserialize(
+        String aCollectionId,
+        String anObjectKey,
+        String aSerializedObject,
+        Class<T> aClass);
 }

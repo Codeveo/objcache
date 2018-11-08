@@ -20,7 +20,6 @@ CREATE TABLE IF NOT EXISTS public.t_objcache(
       collection_id VARCHAR(64) NOT NULL,
       object_key VARCHAR(64) NOT NULL,
       version INTEGER NOT NULL,
-      serializer_type VARCHAR(32) NOT NULL,
       object_data TEXT,
       properties jsonb,
       expiration_time TIMESTAMP WITH TIME ZONE,
@@ -34,4 +33,3 @@ CREATE INDEX IF NOT EXISTS idx_collection_key ON public.t_objcache (collection_i
 CREATE INDEX IF NOT EXISTS idx_properties ON public.t_objcache USING gin (properties);
 
 CREATE SEQUENCE IF NOT EXISTS public.objcache_sequence;
-
