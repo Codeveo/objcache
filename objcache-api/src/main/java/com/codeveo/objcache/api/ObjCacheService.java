@@ -94,7 +94,7 @@ public interface ObjCacheService {
      * @param anObjectKey object key
      * @throws ObjCacheException
      */
-    void delete(String aCollection, String anObjectKey) throws ObjCacheException;
+    long delete(String aCollection, String anObjectKey) throws ObjCacheException;
 
     /**
      * Delete all object under given collection
@@ -102,7 +102,7 @@ public interface ObjCacheService {
      * @param aCollection collection
      * @throws ObjCacheException
      */
-    void deleteByCollection(String aCollection) throws ObjCacheException;
+    long deleteByCollection(String aCollection) throws ObjCacheException;
 
     /**
      * Delete object by given collection and containing given properties
@@ -111,7 +111,7 @@ public interface ObjCacheService {
      * @param anObjectKey object key
      * @throws ObjCacheException
      */
-    void deleteByProperties(String aCollection, String anObjectKey) throws ObjCacheException;
+    long deleteByProperties(String aCollection, Map<String, Object> someProperties) throws ObjCacheException;
 
     /**
      * Expire object at given time

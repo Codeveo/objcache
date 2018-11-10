@@ -100,7 +100,7 @@ public class ObjCacheServiceImpl implements ObjCacheService {
     @Override
     public long countByCollection(final String aCollection) throws ObjCacheException {
         try {
-            Validate.notNull(aCollection, "Collection must be not null");
+            Validate.notBlank(aCollection, "Collection must be not blank");
             final String theQuery =
                 DSL.selectCount().from(TABLE).where(COL_COLLECTION_ID.eq(aCollection)).getSQL(ParamType.INLINED);
 
@@ -113,7 +113,7 @@ public class ObjCacheServiceImpl implements ObjCacheService {
             throw new ObjCacheException(
                 ObjCacheErrorCodeType.OBJCACHE_EC_0006,
                 anException,
-                "Could not count query objects for collection '" + aCollection + "'");
+                "Error occured while running query for collection '" + aCollection + "'");
         }
     }
 
@@ -126,9 +126,27 @@ public class ObjCacheServiceImpl implements ObjCacheService {
     @Override
     public long countByProperties(final String aCollection, final Map<String, Object> someProperties)
         throws ObjCacheException {
-        // TODO Ladislav Klenovic, 19. 10. 2018: Implement method
-        // ObjCacheService.countByProperties
-        return 0;
+        try {
+            Validate.notBlank(aCollection, "Collection must be not blank");
+            final String theQuery =
+                DSL
+                    .selectCount()
+                    .from(TABLE)
+                    .where(COL_COLLECTION_ID.eq(aCollection))
+                    .and(DSL.condition("{0} @> {1}", COL_OBJECT_PROPERTIES, MAPPER.writeValueAsString(someProperties)))
+                    .getSQL(ParamType.INLINED);
+
+            LOGGER.debug("Running query '{}'", theQuery);
+
+            return jdbcTemplate.queryForObject(theQuery, long.class);
+        } catch (final ObjCacheException anException) {
+            throw anException;
+        } catch (final Exception anException) {
+            throw new ObjCacheException(
+                ObjCacheErrorCodeType.OBJCACHE_EC_0006,
+                anException,
+                "Error occured while running query for collection '" + aCollection + "'");
+        }
     }
 
     /**
@@ -183,9 +201,32 @@ public class ObjCacheServiceImpl implements ObjCacheService {
      *      java.lang.String)
      */
     @Override
-    public void delete(final String aCollection, final String anObjectKey) throws ObjCacheException {
-        // TODO Ladislav Klenovic, 19. 10. 2018: Implement method ObjCacheService.delete
+    public long delete(final String aCollection, final String anObjectKey) throws ObjCacheException {
+        try {
+            Validate.notBlank(aCollection, "Collection must be not blank");
+            Validate.notBlank(anObjectKey, "Object key must be not blank");
+            final String theQuery =
+                DSL
+                    .deleteFrom(TABLE)
+                    .where(COL_COLLECTION_ID.eq(aCollection))
+                    .and(COL_OBJECT_KEY.eq(anObjectKey))
+                    .getSQL(ParamType.INLINED);
 
+            LOGGER.debug("Running query '{}'", theQuery);
+
+            return jdbcTemplate.update(theQuery);
+        } catch (final ObjCacheException anException) {
+            throw anException;
+        } catch (final Exception anException) {
+            throw new ObjCacheException(
+                ObjCacheErrorCodeType.OBJCACHE_EC_0006,
+                anException,
+                "Error occured while running delete query for collection '"
+                    + aCollection
+                    + "' and object key '"
+                    + anObjectKey
+                    + "'");
+        }
     }
 
     /**
@@ -194,10 +235,23 @@ public class ObjCacheServiceImpl implements ObjCacheService {
      * @see com.codeveo.objcache.api.ObjCacheService#deleteByCollection(com.codeveo.objcache.api.String)
      */
     @Override
-    public void deleteByCollection(final String aCollection) throws ObjCacheException {
-        // TODO Ladislav Klenovic, 19. 10. 2018: Implement method
-        // ObjCacheService.deleteByCollectionId
+    public long deleteByCollection(final String aCollection) throws ObjCacheException {
+        try {
+            Validate.notBlank(aCollection, "Collection must be not blank");
+            final String theQuery =
+                DSL.deleteFrom(TABLE).where(COL_COLLECTION_ID.eq(aCollection)).getSQL(ParamType.INLINED);
 
+            LOGGER.debug("Running query '{}'", theQuery);
+
+            return jdbcTemplate.update(theQuery);
+        } catch (final ObjCacheException anException) {
+            throw anException;
+        } catch (final Exception anException) {
+            throw new ObjCacheException(
+                ObjCacheErrorCodeType.OBJCACHE_EC_0006,
+                anException,
+                "Error occured while running delete query objects for collection '" + aCollection + "'");
+        }
     }
 
     /**
@@ -207,10 +261,32 @@ public class ObjCacheServiceImpl implements ObjCacheService {
      *      java.lang.String)
      */
     @Override
-    public void deleteByProperties(final String aCollection, final String anObjectKey) throws ObjCacheException {
-        // TODO Ladislav Klenovic, 19. 10. 2018: Implement method
-        // ObjCacheService.deleteByProperties
+    public long deleteByProperties(final String aCollection, Map<String, Object> someProperties)
+        throws ObjCacheException {
+        try {
+            Validate.notBlank(aCollection, "Collection must be not blank");
+            final String theQuery =
+                DSL
+                    .deleteFrom(TABLE)
+                    .where(COL_COLLECTION_ID.eq(aCollection))
+                    .and(DSL.condition("{0} @> {1}", COL_OBJECT_PROPERTIES, MAPPER.writeValueAsString(someProperties)))
+                    .getSQL(ParamType.INLINED);
 
+            LOGGER.debug("Running query '{}'", theQuery);
+
+            return jdbcTemplate.update(theQuery);
+        } catch (final ObjCacheException anException) {
+            throw anException;
+        } catch (final Exception anException) {
+            throw new ObjCacheException(
+                ObjCacheErrorCodeType.OBJCACHE_EC_0006,
+                anException,
+                "Error occured while running delete query objects for collection '"
+                    + aCollection
+                    + "' and propeties '"
+                    + someProperties
+                    + "'");
+        }
     }
 
     /**
@@ -273,7 +349,7 @@ public class ObjCacheServiceImpl implements ObjCacheService {
     @Override
     public <T> List<T> findByCollection(final String aCollection, Class<T> aClass) throws ObjCacheException {
         try {
-            Validate.notNull(aCollection, "Collection must be not null");
+            Validate.notBlank(aCollection, "Collection must be not blank");
             final String theQuery =
                 DSL.selectFrom(TABLE).where(COL_COLLECTION_ID.eq(aCollection)).getSQL(ParamType.INLINED);
 
@@ -296,7 +372,7 @@ public class ObjCacheServiceImpl implements ObjCacheService {
             throw new ObjCacheException(
                 ObjCacheErrorCodeType.OBJCACHE_EC_0006,
                 anException,
-                "Could not query objects for collection '" + aCollection + "'");
+                "Error occured while running query objects for collection '" + aCollection + "'");
         }
     }
 
@@ -313,7 +389,7 @@ public class ObjCacheServiceImpl implements ObjCacheService {
         Class<T> aClass)
         throws ObjCacheException {
         try {
-            Validate.notNull(aCollection, "Collection must be not null");
+            Validate.notBlank(aCollection, "Collection must be not blank");
             final String theQuery =
                 DSL
                     .selectFrom(TABLE)
@@ -340,7 +416,7 @@ public class ObjCacheServiceImpl implements ObjCacheService {
             throw new ObjCacheException(
                 ObjCacheErrorCodeType.OBJCACHE_EC_0006,
                 anException,
-                "Could not query objects for collection '" + aCollection + "'");
+                "Error occured while running query objects for collection '" + aCollection + "'");
         }
     }
 
@@ -423,7 +499,10 @@ public class ObjCacheServiceImpl implements ObjCacheService {
         final Object anObject,
         final ZonedDateTime anExpirationTime) {
         try {
-            validateArgs(aCollection, anObjectKey, aSerializerType);
+            Validate.notBlank(aCollection, "Collection must be not blank");
+            Validate.notBlank(anObjectKey, "Object key must be not blank");
+            Validate.notNull(aSerializerType, "Serializer type must be not null");
+
             final String theProps = MAPPER.writeValueAsString(someProperties);
             final String theObjDataSerialized =
                 serializeObjectData(aCollection, anObjectKey, aSerializerType, anObject);
@@ -474,11 +553,5 @@ public class ObjCacheServiceImpl implements ObjCacheService {
         final ObjCacheSerializerDeserializer theSerializer = objSerDerFactory.getSerializer(aSerializerType);
 
         return theSerializer.serialize(aCollection, anObjectKey, anObject);
-    }
-
-    private void validateArgs(String aCollection, String anObjectKey, SerializerType aSerializerType) {
-        Validate.notBlank(aCollection, "Collection must be not null");
-        Validate.notBlank(anObjectKey, "Object key must be not null");
-        Validate.notNull(aSerializerType, "Serializer type must be not null");
     }
 }
