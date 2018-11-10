@@ -65,7 +65,7 @@ public class ObjCacheServiceImplTest extends AbstractTransactionalTestNGSpringCo
 
     @Test
     @DirtiesContext
-    public void testFindAll() {
+    public void testFindByCollection() {
         final TestObj theTestObj1 = new TestObj("a", 1, ImmutableMap.of("k1", 1, "k2", "v2"));
         final TestObj theTestObj2 = new TestObj("b", 2, ImmutableMap.of("k1", 1, "k2", "v2", "k3", "v3"));
         final ObjCacheEntityMeta theMeta1 =
@@ -138,6 +138,58 @@ public class ObjCacheServiceImplTest extends AbstractTransactionalTestNGSpringCo
             objCacheService.findByProperties(TestObj.COLLECTION, ImmutableMap.of("d", "text"), TestObj.class);
         Assert.assertEquals(theTestObjs.size(), 1);
         Assert.assertEqualsNoOrder(theTestObjs.toArray(), new Object[] { theTestObj2 });
+    }
+
+    @Test
+    @DirtiesContext
+    public void testCountByCollection() {
+        final TestObj theTestObj1 = new TestObj("a", 1, ImmutableMap.of("k1", 1, "k2", "v2"));
+        final TestObj theTestObj2 = new TestObj("b", 2, ImmutableMap.of("k1", 1, "k2", "v2", "k3", "v3"));
+        final TestObj theTestObj3 = new TestObj("c", 2, ImmutableMap.of("k1", 1, "k2", "v2", "k3", "v3"));
+        final ObjCacheEntityMeta theMeta1 =
+            objCacheService
+                .create(
+                    TestObj.COLLECTION,
+                    "test1",
+                    SerializerType.JSON,
+                    ImmutableMap.of("a", 1, "b", "text"),
+                    theTestObj1);
+        Assert.assertNotNull(theMeta1.getCollection());
+        Assert.assertNotNull(theMeta1.getSerializerType());
+        Assert.assertNotNull(theMeta1.getObjectKey());
+        Assert.assertNotNull(theMeta1.getVersion());
+        Assert.assertNull(theMeta1.getExpirationTime());
+
+        final ObjCacheEntityMeta theMeta2 =
+            objCacheService
+                .create(
+                    TestObj.COLLECTION,
+                    "test2",
+                    SerializerType.JSON,
+                    ImmutableMap.of("c", 1, "d", "text"),
+                    theTestObj2);
+        Assert.assertNotNull(theMeta2.getCollection());
+        Assert.assertNotNull(theMeta2.getSerializerType());
+        Assert.assertNotNull(theMeta2.getObjectKey());
+        Assert.assertNotNull(theMeta2.getVersion());
+        Assert.assertNull(theMeta2.getExpirationTime());
+
+        final ObjCacheEntityMeta theMeta3 =
+            objCacheService
+                .create(
+                    TestObj.COLLECTION,
+                    "test3",
+                    SerializerType.JSON,
+                    ImmutableMap.of("e", 3, "f", "text3"),
+                    theTestObj3);
+        Assert.assertNotNull(theMeta3.getCollection());
+        Assert.assertNotNull(theMeta3.getSerializerType());
+        Assert.assertNotNull(theMeta3.getObjectKey());
+        Assert.assertNotNull(theMeta3.getVersion());
+        Assert.assertNull(theMeta3.getExpirationTime());
+
+        final long theTestObjsCount = objCacheService.countByCollection(TestObj.COLLECTION);
+        Assert.assertEquals(theTestObjsCount, 3);
     }
 
 }

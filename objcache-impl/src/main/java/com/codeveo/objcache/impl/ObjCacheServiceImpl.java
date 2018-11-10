@@ -95,12 +95,26 @@ public class ObjCacheServiceImpl implements ObjCacheService {
     /**
      * Overrides an inherit method or implements an abstract method.
      *
-     * @see com.codeveo.objcache.api.ObjCacheService#countAll(com.codeveo.objcache.api.String)
+     * @see com.codeveo.objcache.api.ObjCacheService#countByCollection(com.codeveo.objcache.api.String)
      */
     @Override
-    public long countAll(final String aCollection) throws ObjCacheException {
-        // TODO Ladislav Klenovic, 19. 10. 2018: Implement method ObjCacheService.countAll
-        return 0;
+    public long countByCollection(final String aCollection) throws ObjCacheException {
+        try {
+            Validate.notNull(aCollection, "Collection must be not null");
+            final String theQuery =
+                DSL.selectCount().from(TABLE).where(COL_COLLECTION_ID.eq(aCollection)).getSQL(ParamType.INLINED);
+
+            LOGGER.debug("Running query '{}'", theQuery);
+
+            return jdbcTemplate.queryForObject(theQuery, long.class);
+        } catch (final ObjCacheException anException) {
+            throw anException;
+        } catch (final Exception anException) {
+            throw new ObjCacheException(
+                ObjCacheErrorCodeType.OBJCACHE_EC_0006,
+                anException,
+                "Could not count query objects for collection '" + aCollection + "'");
+        }
     }
 
     /**

@@ -37,7 +37,7 @@ public interface ObjCacheService {
      * @return objects count
      * @throws ObjCacheException
      */
-    long countAll(String aCollection) throws ObjCacheException;
+    long countByCollection(String aCollection) throws ObjCacheException;
 
     /**
      * Count all documents under given collection and containing given properties
