@@ -301,7 +301,11 @@ public class ObjCacheServiceImpl implements ObjCacheService {
         try {
             Validate.notNull(aCollection, "Collection must be not null");
             final String theQuery =
-                DSL.selectFrom(TABLE).where(COL_COLLECTION_ID.eq(aCollection)).getSQL(ParamType.INLINED);
+                DSL
+                    .selectFrom(TABLE)
+                    .where(COL_COLLECTION_ID.eq(aCollection))
+                    .and(DSL.condition("{0} @> {1}", COL_OBJECT_PROPERTIES, MAPPER.writeValueAsString(someProperties)))
+                    .getSQL(ParamType.INLINED);
 
             LOGGER.debug("Running query '{}'", theQuery);
 

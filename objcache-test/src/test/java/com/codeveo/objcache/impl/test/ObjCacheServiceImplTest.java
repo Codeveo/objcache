@@ -101,4 +101,43 @@ public class ObjCacheServiceImplTest extends AbstractTransactionalTestNGSpringCo
         Assert.assertEqualsNoOrder(theTestObjs.toArray(), new Object[] { theTestObj1, theTestObj2 });
     }
 
+    @Test
+    @DirtiesContext
+    public void testFindByProperties() {
+        final TestObj theTestObj1 = new TestObj("a", 1, ImmutableMap.of("k1", 1, "k2", "v2"));
+        final TestObj theTestObj2 = new TestObj("b", 2, ImmutableMap.of("k1", 1, "k2", "v2", "k3", "v3"));
+        final ObjCacheEntityMeta theMeta1 =
+            objCacheService
+                .create(
+                    TestObj.COLLECTION,
+                    "test1",
+                    SerializerType.JSON,
+                    ImmutableMap.of("a", 1, "b", "text"),
+                    theTestObj1);
+        Assert.assertNotNull(theMeta1.getCollection());
+        Assert.assertNotNull(theMeta1.getSerializerType());
+        Assert.assertNotNull(theMeta1.getObjectKey());
+        Assert.assertNotNull(theMeta1.getVersion());
+        Assert.assertNull(theMeta1.getExpirationTime());
+
+        final ObjCacheEntityMeta theMeta2 =
+            objCacheService
+                .create(
+                    TestObj.COLLECTION,
+                    "test2",
+                    SerializerType.JSON,
+                    ImmutableMap.of("c", 1, "d", "text"),
+                    theTestObj2);
+        Assert.assertNotNull(theMeta2.getCollection());
+        Assert.assertNotNull(theMeta2.getSerializerType());
+        Assert.assertNotNull(theMeta2.getObjectKey());
+        Assert.assertNotNull(theMeta2.getVersion());
+        Assert.assertNull(theMeta2.getExpirationTime());
+
+        final List<TestObj> theTestObjs =
+            objCacheService.findByProperties(TestObj.COLLECTION, ImmutableMap.of("d", "text"), TestObj.class);
+        Assert.assertEquals(theTestObjs.size(), 1);
+        Assert.assertEqualsNoOrder(theTestObjs.toArray(), new Object[] { theTestObj2 });
+    }
+
 }
