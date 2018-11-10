@@ -17,6 +17,7 @@
  ******************************************************************************/
 package com.codeveo.objcache.impl.test;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -61,4 +62,40 @@ public class ObjCacheServiceImplTest extends AbstractTransactionalTestNGSpringCo
             objCacheService.find(TestObjCacheCollectionJson.INSTANCE, "test1", TestObj.class);
         Assert.assertTrue(theTestObj.isPresent());
     }
+
+    @Test
+    @DirtiesContext
+    public void testFindAll() {
+        final ObjCacheEntityMeta theMeta1 =
+            objCacheService
+                .create(
+                    TestObjCacheCollectionJson.INSTANCE,
+                    "test1",
+                    ImmutableMap.of("a", 1, "b", "text"),
+                    new TestObj());
+        Assert.assertNotNull(theMeta1.getCollection());
+        Assert.assertNotNull(theMeta1.getCollection().getCollectionId());
+        Assert.assertNotNull(theMeta1.getCollection().getSerializerType());
+        Assert.assertNotNull(theMeta1.getObjectKey());
+        Assert.assertNotNull(theMeta1.getVersion());
+        Assert.assertNull(theMeta1.getExpirationTime());
+
+        final ObjCacheEntityMeta theMeta2 =
+            objCacheService
+                .create(
+                    TestObjCacheCollectionJson.INSTANCE,
+                    "test2",
+                    ImmutableMap.of("c", 1, "d", "text"),
+                    new TestObj());
+        Assert.assertNotNull(theMeta2.getCollection());
+        Assert.assertNotNull(theMeta2.getCollection().getCollectionId());
+        Assert.assertNotNull(theMeta2.getCollection().getSerializerType());
+        Assert.assertNotNull(theMeta2.getObjectKey());
+        Assert.assertNotNull(theMeta2.getVersion());
+        Assert.assertNull(theMeta2.getExpirationTime());
+
+        final List<TestObj> theTestObj = objCacheService.findByCollection(TestObjCacheCollectionJson.INSTANCE, TestObj.class);
+        Assert.assertEquals(theTestObj.size(), 2);
+    }
+
 }

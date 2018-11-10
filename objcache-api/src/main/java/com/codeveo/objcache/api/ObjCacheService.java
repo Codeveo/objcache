@@ -17,7 +17,6 @@
  ******************************************************************************/
 package com.codeveo.objcache.api;
 
-import java.io.Serializable;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
@@ -65,7 +64,7 @@ public interface ObjCacheService {
         AbstractObjCacheCollection aCollection,
         String anObjectKey,
         Map<String, Object> someProperties,
-        Serializable anObject)
+        Object anObject)
         throws ObjCacheException;
 
     /**
@@ -83,7 +82,7 @@ public interface ObjCacheService {
         AbstractObjCacheCollection aCollection,
         String anObjectKey,
         Map<String, Object> someProperties,
-        Serializable anObject,
+        Object anObject,
         ZonedDateTime anExpirationTime)
         throws ObjCacheException;
 
@@ -136,10 +135,7 @@ public interface ObjCacheService {
      * @return found object or empty
      * @throws ObjCacheException
      */
-    <T extends Serializable> Optional<T> find(
-        AbstractObjCacheCollection aCollection,
-        String anObjectKey,
-        Class<T> aClass)
+    <T> Optional<T> find(AbstractObjCacheCollection aCollection, String anObjectKey, Class<T> aClass)
         throws ObjCacheException;
 
     /**
@@ -149,7 +145,7 @@ public interface ObjCacheService {
      * @return all documents under given collection
      * @throws ObjCacheException
      */
-    <T extends Serializable> List<T> findAll(AbstractObjCacheCollection aCollection) throws ObjCacheException;
+    <T> List<T> findByCollection(AbstractObjCacheCollection aCollection, Class<T> aClass) throws ObjCacheException;
 
     /**
      * Find all documents under given collection and containing given properties
@@ -158,9 +154,10 @@ public interface ObjCacheService {
      * @param someProperties object properties
      * @return found documents
      */
-    <T extends Serializable> List<T> findByProperties(
+    <T> List<T> findByProperties(
         AbstractObjCacheCollection aCollection,
-        Map<String, Object> someProperties)
+        Map<String, Object> someProperties,
+        Class<T> aClass)
         throws ObjCacheException;
 
     /**
@@ -181,7 +178,7 @@ public interface ObjCacheService {
         String anObjectKey,
         Long aVersion,
         Map<String, Object> someProperties,
-        Serializable anObject,
+        Object anObject,
         ZonedDateTime anExpirationTime)
         throws ObjCacheException;
 
@@ -202,7 +199,7 @@ public interface ObjCacheService {
         String anObjectKey,
         Map<String, Object> someProperties,
         Long aVersion,
-        Serializable anObject)
+        Object anObject)
         throws ObjCacheException;
 
     /**
@@ -220,7 +217,7 @@ public interface ObjCacheService {
         AbstractObjCacheCollection aCollection,
         String anObjectKey,
         Map<String, Object> someProperties,
-        Serializable anObject)
+        Object anObject)
         throws ObjCacheException;
 
     /**
@@ -239,7 +236,7 @@ public interface ObjCacheService {
         AbstractObjCacheCollection aCollection,
         String anObjectKey,
         Map<String, Object> someProperties,
-        Serializable anObject,
+        Object anObject,
         ZonedDateTime anExpirationTime)
         throws ObjCacheException;
 

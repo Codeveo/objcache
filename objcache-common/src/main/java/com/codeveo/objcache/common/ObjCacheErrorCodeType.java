@@ -46,5 +46,9 @@ public enum ObjCacheErrorCodeType {
     /**
      * Object persisting error
      */
-    OBJCACHE_EC_0005
+    OBJCACHE_EC_0005,
+    /**
+     * Query error
+     */
+    OBJCACHE_EC_0006
 }

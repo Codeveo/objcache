@@ -17,19 +17,13 @@
  ******************************************************************************/
 package com.codeveo.objcache.impl;
 
-import java.io.Serializable;
-
 import com.codeveo.objcache.api.SerializerType;
 
 public interface ObjCacheSerializerDeserializer {
 
     SerializerType getSerializerType();
 
-    String serialize(String aCollectionId, String anObjectKey, Serializable anObject);
+    String serialize(String aCollectionId, String anObjectKey, Object anObject);
 
-    <T extends Serializable> T deserialize(
-        String aCollectionId,
-        String anObjectKey,
-        String aSerializedObject,
-        Class<T> aClass);
+    <T> T deserialize(String aCollectionId, String anObjectKey, String aSerializedObject, Class<T> aClass);
 }

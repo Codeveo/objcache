@@ -17,8 +17,6 @@
  ******************************************************************************/
 package com.codeveo.objcache.impl;
 
-import java.io.Serializable;
-
 import com.codeveo.objcache.api.SerializerType;
 import com.codeveo.objcache.common.ObjCacheErrorCodeType;
 import com.codeveo.objcache.common.ObjCacheException;
@@ -33,10 +31,10 @@ public class JsonObjSerializerDeserializer implements ObjCacheSerializerDeserial
      * Overrides an inherit method or implements an abstract method.
      *
      * @see com.codeveo.objcache.impl.ObjCacheSerializerDeserializer#serialize(java.lang.String,
-     *      java.lang.String, java.io.Serializable)
+     *      java.lang.String, java.io.Object)
      */
     @Override
-    public String serialize(final String aCollectionId, final String anObjectKey, final Serializable anObject) {
+    public String serialize(final String aCollectionId, final String anObjectKey, final Object anObject) {
         try {
             return anObject != null ? MAPPER.writeValueAsString(anObject) : null;
         } catch (final Exception anException) {
@@ -55,7 +53,7 @@ public class JsonObjSerializerDeserializer implements ObjCacheSerializerDeserial
      *      java.lang.String, java.lang.String)
      */
     @Override
-    public <T extends Serializable> T deserialize(
+    public <T> T deserialize(
         final String aCollectionId,
         final String anObjectKey,
         final String aSerializedObject,

@@ -17,7 +17,6 @@
  ******************************************************************************/
 package com.codeveo.objcache.impl;
 
-import java.io.Serializable;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -121,14 +120,14 @@ public class ObjCacheServiceImpl implements ObjCacheService {
      * Overrides an inherit method or implements an abstract method.
      *
      * @see com.codeveo.objcache.api.ObjCacheService#create(com.codeveo.objcache.api.AbstractObjCacheCollection,
-     *      java.lang.String, java.util.Map, java.io.Serializable)
+     *      java.lang.String, java.util.Map, java.io.Object)
      */
     @Override
     public ObjCacheEntityMeta create(
         final AbstractObjCacheCollection aCollection,
         final String anObjectKey,
         final Map<String, Object> someProperties,
-        final Serializable anObject)
+        final Object anObject)
         throws ObjCacheException {
         return txTemplate.execute(aStatus -> createCommon(aCollection, anObjectKey, someProperties, anObject, null));
     }
@@ -137,14 +136,14 @@ public class ObjCacheServiceImpl implements ObjCacheService {
      * Overrides an inherit method or implements an abstract method.
      *
      * @see com.codeveo.objcache.api.ObjCacheService#create(com.codeveo.objcache.api.AbstractObjCacheCollection,
-     *      java.lang.String, java.util.Map, java.io.Serializable, java.time.ZonedDateTime)
+     *      java.lang.String, java.util.Map, java.io.Object, java.time.ZonedDateTime)
      */
     @Override
     public ObjCacheEntityMeta create(
         final AbstractObjCacheCollection aCollection,
         final String anObjectKey,
         final Map<String, Object> someProperties,
-        final Serializable anObject,
+        final Object anObject,
         final ZonedDateTime anExpirationTime)
         throws ObjCacheException {
         return txTemplate
@@ -213,10 +212,7 @@ public class ObjCacheServiceImpl implements ObjCacheService {
      *      java.lang.String)
      */
     @Override
-    public <T extends Serializable> Optional<T> find(
-        final AbstractObjCacheCollection aCollection,
-        final String anObjectKey,
-        Class<T> aClass)
+    public <T> Optional<T> find(final AbstractObjCacheCollection aCollection, final String anObjectKey, Class<T> aClass)
         throws ObjCacheException {
         try {
             validateArgs(aCollection, anObjectKey);
@@ -255,9 +251,35 @@ public class ObjCacheServiceImpl implements ObjCacheService {
      * @see com.codeveo.objcache.api.ObjCacheService#findAll(com.codeveo.objcache.api.AbstractObjCacheCollection)
      */
     @Override
-    public <T extends Serializable> List<T> findAll(final AbstractObjCacheCollection aCollection)
+    public <T> List<T> findByCollection(final AbstractObjCacheCollection aCollection, Class<T> aClass)
         throws ObjCacheException {
-        return null;
+        try {
+            Validate.notNull(aCollection, "Collection must be not null");
+            final String theQuery =
+                DSL
+                    .selectFrom(TABLE)
+                    .where(COL_COLLECTION_ID.eq(aCollection.getCollectionId()))
+                    .getSQL(ParamType.INLINED);
+
+            LOGGER.debug("Running query '{}'", theQuery);
+
+            final List<T> theObjectsList = jdbcTemplate.query(theQuery, (aRowMapper, aRowNum) -> {
+                final String theColObjectData = aRowMapper.getString(COL_OBJECT_DATA.getName());
+                final String theObjectKey = aRowMapper.getString(COL_OBJECT_KEY.getName());
+                return objSerDerFactory
+                    .getSerializer(aCollection.getSerializerType())
+                    .deserialize(aCollection.getCollectionId(), theObjectKey, theColObjectData, aClass);
+            });
+
+            return theObjectsList;
+        } catch (final ObjCacheException anException) {
+            throw anException;
+        } catch (final Exception anException) {
+            throw new ObjCacheException(
+                ObjCacheErrorCodeType.OBJCACHE_EC_0006,
+                anException,
+                "Could not query objects for collection '" + aCollection.getCollectionId() + "'");
+        }
     }
 
     /**
@@ -267,9 +289,10 @@ public class ObjCacheServiceImpl implements ObjCacheService {
      *      java.util.Map)
      */
     @Override
-    public <T extends Serializable> List<T> findByProperties(
+    public <T> List<T> findByProperties(
         final AbstractObjCacheCollection aCollection,
-        final Map<String, Object> someProperties)
+        final Map<String, Object> someProperties,
+        Class<T> aClass)
         throws ObjCacheException {
         return null;
     }
@@ -287,7 +310,7 @@ public class ObjCacheServiceImpl implements ObjCacheService {
         final String anObjectKey,
         final Long aVersion,
         final Map<String, Object> someProperties,
-        final Serializable anObject,
+        final Object anObject,
         final ZonedDateTime anExpirationTime)
         throws ObjCacheException {
         throw new ObjCacheException(ObjCacheErrorCodeType.OBJCACHE_EC_0001, "update with specified version");
@@ -297,7 +320,7 @@ public class ObjCacheServiceImpl implements ObjCacheService {
      * Overrides an inherit method or implements an abstract method.
      *
      * @see com.codeveo.objcache.api.ObjCacheService#update(com.codeveo.objcache.api.AbstractObjCacheCollection,
-     *      java.lang.String, java.util.Map, java.lang.Long, java.io.Serializable)
+     *      java.lang.String, java.util.Map, java.lang.Long, java.io.Object)
      */
     @Override
     public ObjCacheEntityMeta update(
@@ -305,7 +328,7 @@ public class ObjCacheServiceImpl implements ObjCacheService {
         final String anObjectKey,
         final Map<String, Object> someProperties,
         final Long aVersion,
-        final Serializable anObject)
+        final Object anObject)
         throws ObjCacheException {
         throw new ObjCacheException(ObjCacheErrorCodeType.OBJCACHE_EC_0001, "update with specified version");
     }
@@ -314,14 +337,14 @@ public class ObjCacheServiceImpl implements ObjCacheService {
      * Overrides an inherit method or implements an abstract method.
      *
      * @see com.codeveo.objcache.api.ObjCacheService#update(com.codeveo.objcache.api.AbstractObjCacheCollection,
-     *      java.lang.String, java.util.Map, java.io.Serializable)
+     *      java.lang.String, java.util.Map, java.io.Object)
      */
     @Override
     public ObjCacheEntityMeta update(
         final AbstractObjCacheCollection aCollection,
         final String anObjectKey,
         final Map<String, Object> someProperties,
-        final Serializable anObject)
+        final Object anObject)
         throws ObjCacheException {
         // TODO Ladislav Klenovic, 19. 10. 2018: Implement method ObjCacheService.update
         return null;
@@ -331,14 +354,14 @@ public class ObjCacheServiceImpl implements ObjCacheService {
      * Overrides an inherit method or implements an abstract method.
      *
      * @see com.codeveo.objcache.api.ObjCacheService#update(com.codeveo.objcache.api.AbstractObjCacheCollection,
-     *      java.lang.String, java.util.Map, java.io.Serializable, java.time.ZonedDateTime)
+     *      java.lang.String, java.util.Map, java.io.Object, java.time.ZonedDateTime)
      */
     @Override
     public ObjCacheEntityMeta update(
         final AbstractObjCacheCollection aCollection,
         final String anObjectKey,
         final Map<String, Object> someProperties,
-        final Serializable anObject,
+        final Object anObject,
         final ZonedDateTime anExpirationTime)
         throws ObjCacheException {
         // TODO Ladislav Klenovic, 19. 10. 2018: Implement method ObjCacheService.update
@@ -349,7 +372,7 @@ public class ObjCacheServiceImpl implements ObjCacheService {
         final AbstractObjCacheCollection aCollection,
         final String anObjectKey,
         final Map<String, Object> someProperties,
-        final Serializable anObject,
+        final Object anObject,
         final ZonedDateTime anExpirationTime) {
         try {
             validateArgs(aCollection, anObjectKey);
@@ -402,7 +425,7 @@ public class ObjCacheServiceImpl implements ObjCacheService {
     private String serializeObjectData(
         final AbstractObjCacheCollection aCollection,
         final String anObjectKey,
-        final Serializable anObject) {
+        final Object anObject) {
         final ObjCacheSerializerDeserializer theSerializer =
             objSerDerFactory.getSerializer(aCollection.getSerializerType());
 

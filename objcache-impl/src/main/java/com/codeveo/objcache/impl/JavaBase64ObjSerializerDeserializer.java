@@ -21,7 +21,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.Serializable;
 import java.util.Base64;
 
 import com.codeveo.objcache.api.SerializerType;
@@ -36,7 +35,7 @@ public class JavaBase64ObjSerializerDeserializer implements ObjCacheSerializerDe
      * @see com.codeveo.objcache.impl.ObjCacheSerializerDeserializer#serialize(java.io.Serializable)
      */
     @Override
-    public String serialize(final String aCollectionId, final String anObjectKey, final Serializable anObject) {
+    public String serialize(final String aCollectionId, final String anObjectKey, final Object anObject) {
         try (
             final ByteArrayOutputStream theBaos = new ByteArrayOutputStream();
             final ObjectOutputStream theOos = new ObjectOutputStream(theBaos)) {
@@ -59,7 +58,7 @@ public class JavaBase64ObjSerializerDeserializer implements ObjCacheSerializerDe
      *      java.lang.String, java.lang.String)
      */
     @Override
-    public <T extends Serializable> T deserialize(
+    public <T> T deserialize(
         final String aCollectionId,
         final String anObjectKey,
         final String aSerializedObject,
