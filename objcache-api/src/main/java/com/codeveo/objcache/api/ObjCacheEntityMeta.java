@@ -27,7 +27,9 @@ public class ObjCacheEntityMeta {
 
     private final String objectKey;
 
-    private final AbstractObjCacheCollection collection;
+    private final String collection;
+
+    private final SerializerType serializerType;
 
     private final Integer version;
 
@@ -43,13 +45,15 @@ public class ObjCacheEntityMeta {
      * @param aSerializerType used serializer
      */
     public ObjCacheEntityMeta(
+        final String aCollection,
         final String aObjectKey,
-        final AbstractObjCacheCollection aCollection,
+        SerializerType aSerializerType,
         final Integer aVersion,
         final ZonedDateTime anExpirationTime) {
         super();
-        objectKey = aObjectKey;
         collection = aCollection;
+        objectKey = aObjectKey;
+        serializerType = aSerializerType;
         version = aVersion;
         expirationTime = anExpirationTime;
     }
@@ -58,7 +62,7 @@ public class ObjCacheEntityMeta {
         return objectKey;
     }
 
-    public AbstractObjCacheCollection getCollection() {
+    public String getCollection() {
         return collection;
     }
 
@@ -68,5 +72,9 @@ public class ObjCacheEntityMeta {
 
     public ZonedDateTime getExpirationTime() {
         return expirationTime;
+    }
+
+    public SerializerType getSerializerType() {
+        return serializerType;
     }
 }

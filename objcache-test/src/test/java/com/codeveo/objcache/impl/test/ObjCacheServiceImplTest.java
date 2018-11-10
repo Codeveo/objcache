@@ -31,6 +31,7 @@ import org.testng.annotations.Test;
 
 import com.codeveo.objcache.api.ObjCacheEntityMeta;
 import com.codeveo.objcache.api.ObjCacheService;
+import com.codeveo.objcache.api.SerializerType;
 import com.google.common.collect.ImmutableMap;
 
 @ContextConfiguration("classpath:test-context.xml")
@@ -47,35 +48,36 @@ public class ObjCacheServiceImplTest extends AbstractTransactionalTestNGSpringCo
         final ObjCacheEntityMeta theMeta =
             objCacheService
                 .create(
-                    TestObjCacheCollectionJson.INSTANCE,
+                    TestObj.COLLECTION,
                     "test1",
+                    SerializerType.JSON,
                     ImmutableMap.of("a", 1, "b", "text"),
                     new TestObj());
         Assert.assertNotNull(theMeta.getCollection());
-        Assert.assertNotNull(theMeta.getCollection().getCollectionId());
-        Assert.assertNotNull(theMeta.getCollection().getSerializerType());
+        Assert.assertNotNull(theMeta.getSerializerType());
         Assert.assertNotNull(theMeta.getObjectKey());
         Assert.assertNotNull(theMeta.getVersion());
         Assert.assertNull(theMeta.getExpirationTime());
 
-        final Optional<TestObj> theTestObj =
-            objCacheService.find(TestObjCacheCollectionJson.INSTANCE, "test1", TestObj.class);
+        final Optional<TestObj> theTestObj = objCacheService.find(TestObj.COLLECTION, "test1", TestObj.class);
         Assert.assertTrue(theTestObj.isPresent());
     }
 
     @Test
     @DirtiesContext
     public void testFindAll() {
+        final TestObj theTestObj1 = new TestObj("a", 1, ImmutableMap.of("k1", 1, "k2", "v2"));
+        final TestObj theTestObj2 = new TestObj("b", 2, ImmutableMap.of("k1", 1, "k2", "v2", "k3", "v3"));
         final ObjCacheEntityMeta theMeta1 =
             objCacheService
                 .create(
-                    TestObjCacheCollectionJson.INSTANCE,
+                    TestObj.COLLECTION,
                     "test1",
+                    SerializerType.JSON,
                     ImmutableMap.of("a", 1, "b", "text"),
-                    new TestObj());
+                    theTestObj1);
         Assert.assertNotNull(theMeta1.getCollection());
-        Assert.assertNotNull(theMeta1.getCollection().getCollectionId());
-        Assert.assertNotNull(theMeta1.getCollection().getSerializerType());
+        Assert.assertNotNull(theMeta1.getSerializerType());
         Assert.assertNotNull(theMeta1.getObjectKey());
         Assert.assertNotNull(theMeta1.getVersion());
         Assert.assertNull(theMeta1.getExpirationTime());
@@ -83,19 +85,20 @@ public class ObjCacheServiceImplTest extends AbstractTransactionalTestNGSpringCo
         final ObjCacheEntityMeta theMeta2 =
             objCacheService
                 .create(
-                    TestObjCacheCollectionJson.INSTANCE,
+                    TestObj.COLLECTION,
                     "test2",
+                    SerializerType.JSON,
                     ImmutableMap.of("c", 1, "d", "text"),
-                    new TestObj());
+                    theTestObj2);
         Assert.assertNotNull(theMeta2.getCollection());
-        Assert.assertNotNull(theMeta2.getCollection().getCollectionId());
-        Assert.assertNotNull(theMeta2.getCollection().getSerializerType());
+        Assert.assertNotNull(theMeta2.getSerializerType());
         Assert.assertNotNull(theMeta2.getObjectKey());
         Assert.assertNotNull(theMeta2.getVersion());
         Assert.assertNull(theMeta2.getExpirationTime());
 
-        final List<TestObj> theTestObj = objCacheService.findByCollection(TestObjCacheCollectionJson.INSTANCE, TestObj.class);
-        Assert.assertEquals(theTestObj.size(), 2);
+        final List<TestObj> theTestObjs = objCacheService.findByCollection(TestObj.COLLECTION, TestObj.class);
+        Assert.assertEquals(theTestObjs.size(), 2);
+        Assert.assertEqualsNoOrder(theTestObjs.toArray(), new Object[] { theTestObj1, theTestObj2 });
     }
 
 }

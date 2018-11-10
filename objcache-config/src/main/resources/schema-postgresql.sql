@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS public.t_objcache(
       id SERIAL PRIMARY KEY NOT NULL,
       collection_id VARCHAR(64) NOT NULL,
       object_key VARCHAR(64) NOT NULL,
+      serializer_type VARCHAR(16) NOT NULL,
       version INTEGER NOT NULL,
       object_data TEXT,
       properties jsonb,

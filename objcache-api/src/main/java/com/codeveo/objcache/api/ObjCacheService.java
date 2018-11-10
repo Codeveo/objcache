@@ -37,7 +37,7 @@ public interface ObjCacheService {
      * @return objects count
      * @throws ObjCacheException
      */
-    long countAll(AbstractObjCacheCollection aCollection) throws ObjCacheException;
+    long countAll(String aCollection) throws ObjCacheException;
 
     /**
      * Count all documents under given collection and containing given properties
@@ -47,8 +47,7 @@ public interface ObjCacheService {
      * @return objects count
      * @throws ObjCacheException
      */
-    long countByProperties(AbstractObjCacheCollection aCollection, Map<String, Object> someProperties)
-        throws ObjCacheException;
+    long countByProperties(String aCollection, Map<String, Object> someProperties) throws ObjCacheException;
 
     /**
      * Create new object
@@ -61,8 +60,9 @@ public interface ObjCacheService {
      * @throws ObjCacheException
      */
     ObjCacheEntityMeta create(
-        AbstractObjCacheCollection aCollection,
+        String aCollection,
         String anObjectKey,
+        SerializerType aSerializerType,
         Map<String, Object> someProperties,
         Object anObject)
         throws ObjCacheException;
@@ -79,8 +79,9 @@ public interface ObjCacheService {
      * @throws ObjCacheException
      */
     ObjCacheEntityMeta create(
-        AbstractObjCacheCollection aCollection,
+        String aCollection,
         String anObjectKey,
+        SerializerType aSerializerType,
         Map<String, Object> someProperties,
         Object anObject,
         ZonedDateTime anExpirationTime)
@@ -93,7 +94,7 @@ public interface ObjCacheService {
      * @param anObjectKey object key
      * @throws ObjCacheException
      */
-    void delete(AbstractObjCacheCollection aCollection, String anObjectKey) throws ObjCacheException;
+    void delete(String aCollection, String anObjectKey) throws ObjCacheException;
 
     /**
      * Delete all object under given collection
@@ -101,7 +102,7 @@ public interface ObjCacheService {
      * @param aCollection collection
      * @throws ObjCacheException
      */
-    void deleteByCollection(AbstractObjCacheCollection aCollection) throws ObjCacheException;
+    void deleteByCollection(String aCollection) throws ObjCacheException;
 
     /**
      * Delete object by given collection and containing given properties
@@ -110,7 +111,7 @@ public interface ObjCacheService {
      * @param anObjectKey object key
      * @throws ObjCacheException
      */
-    void deleteByProperties(AbstractObjCacheCollection aCollection, String anObjectKey) throws ObjCacheException;
+    void deleteByProperties(String aCollection, String anObjectKey) throws ObjCacheException;
 
     /**
      * Expire object at given time
@@ -121,10 +122,7 @@ public interface ObjCacheService {
      * @return object meta data
      * @throws ObjCacheException
      */
-    ObjCacheEntityMeta expire(
-        AbstractObjCacheCollection aCollection,
-        String anObjectKey,
-        final ZonedDateTime anExpirationTime)
+    ObjCacheEntityMeta expire(String aCollection, String anObjectKey, final ZonedDateTime anExpirationTime)
         throws ObjCacheException;
 
     /**
@@ -135,8 +133,7 @@ public interface ObjCacheService {
      * @return found object or empty
      * @throws ObjCacheException
      */
-    <T> Optional<T> find(AbstractObjCacheCollection aCollection, String anObjectKey, Class<T> aClass)
-        throws ObjCacheException;
+    <T> Optional<T> find(String aCollection, String anObjectKey, Class<T> aClass) throws ObjCacheException;
 
     /**
      * Find all documents under given collection
@@ -145,7 +142,7 @@ public interface ObjCacheService {
      * @return all documents under given collection
      * @throws ObjCacheException
      */
-    <T> List<T> findByCollection(AbstractObjCacheCollection aCollection, Class<T> aClass) throws ObjCacheException;
+    <T> List<T> findByCollection(String aCollection, Class<T> aClass) throws ObjCacheException;
 
     /**
      * Find all documents under given collection and containing given properties
@@ -154,10 +151,7 @@ public interface ObjCacheService {
      * @param someProperties object properties
      * @return found documents
      */
-    <T> List<T> findByProperties(
-        AbstractObjCacheCollection aCollection,
-        Map<String, Object> someProperties,
-        Class<T> aClass)
+    <T> List<T> findByProperties(String aCollection, Map<String, Object> someProperties, Class<T> aClass)
         throws ObjCacheException;
 
     /**
@@ -174,7 +168,7 @@ public interface ObjCacheService {
      * @throws ObjCacheException
      */
     ObjCacheEntityMeta update(
-        AbstractObjCacheCollection aCollection,
+        String aCollection,
         String anObjectKey,
         Long aVersion,
         Map<String, Object> someProperties,
@@ -195,7 +189,7 @@ public interface ObjCacheService {
      * @throws ObjCacheException
      */
     ObjCacheEntityMeta update(
-        AbstractObjCacheCollection aCollection,
+        String aCollection,
         String anObjectKey,
         Map<String, Object> someProperties,
         Long aVersion,
@@ -214,7 +208,7 @@ public interface ObjCacheService {
      * @throws ObjCacheException
      */
     ObjCacheEntityMeta update(
-        AbstractObjCacheCollection aCollection,
+        String aCollection,
         String anObjectKey,
         Map<String, Object> someProperties,
         Object anObject)
@@ -233,7 +227,7 @@ public interface ObjCacheService {
      * @throws ObjCacheException
      */
     ObjCacheEntityMeta update(
-        AbstractObjCacheCollection aCollection,
+        String aCollection,
         String anObjectKey,
         Map<String, Object> someProperties,
         Object anObject,
