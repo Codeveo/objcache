@@ -101,6 +101,7 @@ public class ObjCacheServiceImpl implements ObjCacheService {
     public long countByCollection(final String aCollection) throws ObjCacheException {
         try {
             Validate.notBlank(aCollection, "Collection must be not blank");
+
             final String theQuery =
                 DSL.selectCount().from(TABLE).where(COL_COLLECTION_ID.eq(aCollection)).getSQL(ParamType.INLINED);
 
@@ -128,6 +129,7 @@ public class ObjCacheServiceImpl implements ObjCacheService {
         throws ObjCacheException {
         try {
             Validate.notBlank(aCollection, "Collection must be not blank");
+
             final String theQuery =
                 DSL
                     .selectCount()
@@ -178,7 +180,7 @@ public class ObjCacheServiceImpl implements ObjCacheService {
     public ObjCacheEntityMeta create(
         final String aCollection,
         final String anObjectKey,
-        SerializerType aSerializerType,
+        final SerializerType aSerializerType,
         final Map<String, Object> someProperties,
         final Object anObject,
         final ZonedDateTime anExpirationTime)
@@ -205,6 +207,7 @@ public class ObjCacheServiceImpl implements ObjCacheService {
         try {
             Validate.notBlank(aCollection, "Collection must be not blank");
             Validate.notBlank(anObjectKey, "Object key must be not blank");
+
             final String theQuery =
                 DSL
                     .deleteFrom(TABLE)
@@ -238,6 +241,7 @@ public class ObjCacheServiceImpl implements ObjCacheService {
     public long deleteByCollection(final String aCollection) throws ObjCacheException {
         try {
             Validate.notBlank(aCollection, "Collection must be not blank");
+
             final String theQuery =
                 DSL.deleteFrom(TABLE).where(COL_COLLECTION_ID.eq(aCollection)).getSQL(ParamType.INLINED);
 
@@ -265,6 +269,7 @@ public class ObjCacheServiceImpl implements ObjCacheService {
         throws ObjCacheException {
         try {
             Validate.notBlank(aCollection, "Collection must be not blank");
+
             final String theQuery =
                 DSL
                     .deleteFrom(TABLE)
@@ -287,22 +292,6 @@ public class ObjCacheServiceImpl implements ObjCacheService {
                     + someProperties
                     + "'");
         }
-    }
-
-    /**
-     * Overrides an inherit method or implements an abstract method.
-     *
-     * @see com.codeveo.objcache.api.ObjCacheService#expire(com.codeveo.objcache.api.String,
-     *      java.lang.String, java.time.ZonedDateTime)
-     */
-    @Override
-    public ObjCacheEntityMeta expire(
-        final String aCollection,
-        final String anObjectKey,
-        final ZonedDateTime anExpirationTime)
-        throws ObjCacheException {
-        // TODO Ladislav Klenovic, 19. 10. 2018: Implement method ObjCacheService.expire
-        return null;
     }
 
     /**
@@ -390,6 +379,7 @@ public class ObjCacheServiceImpl implements ObjCacheService {
         throws ObjCacheException {
         try {
             Validate.notBlank(aCollection, "Collection must be not blank");
+
             final String theQuery =
                 DSL
                     .selectFrom(TABLE)

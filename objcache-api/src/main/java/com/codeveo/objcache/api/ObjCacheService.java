@@ -114,18 +114,6 @@ public interface ObjCacheService {
     long deleteByProperties(String aCollection, Map<String, Object> someProperties) throws ObjCacheException;
 
     /**
-     * Expire object at given time
-     *
-     * @param aCollection collection
-     * @param anObjectKey object key
-     * @param anExpirationTime expiration time
-     * @return object meta data
-     * @throws ObjCacheException
-     */
-    ObjCacheEntityMeta expire(String aCollection, String anObjectKey, final ZonedDateTime anExpirationTime)
-        throws ObjCacheException;
-
-    /**
      * Find object by collection and key
      *
      * @param aCollection collection
