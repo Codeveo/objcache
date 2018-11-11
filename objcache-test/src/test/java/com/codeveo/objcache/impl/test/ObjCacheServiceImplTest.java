@@ -18,6 +18,7 @@
 package com.codeveo.objcache.impl.test;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -429,14 +430,9 @@ public class ObjCacheServiceImplTest extends AbstractTransactionalTestNGSpringCo
     @DirtiesContext
     public void testUpdate1() {
         final TestObj theTestObj = new TestObj("a", 1, ImmutableMap.of("k1", 1, "k2", "v2"));
+        final Map<String, Object> theOriginalProps = ImmutableMap.of("a", 1, "b", "text");
         final ObjCacheEntityMeta theMeta1 =
-            objCacheService
-                .create(
-                    TestObj.COLLECTION,
-                    "test1",
-                    SerializerType.JSON,
-                    ImmutableMap.of("a", 1, "b", "text"),
-                    theTestObj);
+            objCacheService.create(TestObj.COLLECTION, "test1", SerializerType.JSON, theOriginalProps, theTestObj);
         Assert.assertNotNull(theMeta1.getCollection());
         Assert.assertNotNull(theMeta1.getSerializerType());
         Assert.assertNotNull(theMeta1.getObjectKey());
@@ -448,19 +444,18 @@ public class ObjCacheServiceImplTest extends AbstractTransactionalTestNGSpringCo
         Assert.assertEquals(theStoredObj.get(), theTestObj);
 
         final TestObj theTestObjUpdated = new TestObj("b", 2, ImmutableMap.of("k1", 2, "k2", "v3"));
+        final Map<String, Object> theNewProperties = ImmutableMap.of("a", 2, "b", "text", "c", 3);
+
         final ObjCacheEntityMeta theUpdatedMeta1 =
-            objCacheService
-                .update(
-                    TestObj.COLLECTION,
-                    "test1",
-                    1,
-                    ImmutableMap.of("a", 2, "b", "text", "c", 3),
-                    theTestObjUpdated,
-                    null);
+            objCacheService.update(TestObj.COLLECTION, "test1", 1, theNewProperties, theTestObjUpdated, null);
         Assert.assertEquals(theUpdatedMeta1.getVersion().intValue(), 2L);
 
-        final Optional<TestObj> theStoredObj1 = objCacheService.find(TestObj.COLLECTION, "test1", TestObj.class);
-        Assert.assertTrue(theStoredObj1.isPresent());
-        Assert.assertEquals(theStoredObj1.get(), theTestObjUpdated);
+        List<TestObj> theStoredObjs =
+            objCacheService.findByProperties(TestObj.COLLECTION, theOriginalProps, TestObj.class);
+        Assert.assertTrue(theStoredObjs.isEmpty());
+
+        theStoredObjs = objCacheService.findByProperties(TestObj.COLLECTION, theNewProperties, TestObj.class);
+        Assert.assertEquals(theStoredObjs.size(), 1);
+        Assert.assertEquals(theStoredObjs.get(0), theTestObjUpdated);
     }
 }
