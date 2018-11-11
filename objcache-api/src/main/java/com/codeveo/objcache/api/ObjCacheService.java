@@ -94,7 +94,7 @@ public interface ObjCacheService {
      * @param anObjectKey object key
      * @throws ObjCacheException
      */
-    long delete(String aCollection, String anObjectKey) throws ObjCacheException;
+    int delete(String aCollection, String anObjectKey) throws ObjCacheException;
 
     /**
      * Delete all object under given collection
@@ -102,7 +102,7 @@ public interface ObjCacheService {
      * @param aCollection collection
      * @throws ObjCacheException
      */
-    long deleteByCollection(String aCollection) throws ObjCacheException;
+    int deleteByCollection(String aCollection) throws ObjCacheException;
 
     /**
      * Delete object by given collection and containing given properties
@@ -111,7 +111,7 @@ public interface ObjCacheService {
      * @param anObjectKey object key
      * @throws ObjCacheException
      */
-    long deleteByProperties(String aCollection, Map<String, Object> someProperties) throws ObjCacheException;
+    int deleteByProperties(String aCollection, Map<String, Object> someProperties) throws ObjCacheException;
 
     /**
      * Find object by collection and key
@@ -183,43 +183,4 @@ public interface ObjCacheService {
         Integer aVersion,
         Object anObject)
         throws ObjCacheException;
-
-    /**
-     * Update existing object latest version
-     *
-     *
-     * @param aCollection collection the object exists under
-     * @param anObjectKey object key
-     * @param someProperties object properties
-     * @param anObject object data
-     * @return object meta data
-     * @throws ObjCacheException
-     */
-    ObjCacheEntityMeta update(
-        String aCollection,
-        String anObjectKey,
-        Map<String, Object> someProperties,
-        Object anObject)
-        throws ObjCacheException;
-
-    /**
-     * Update existing object latest version
-     *
-     *
-     * @param aCollection collection the object exists under
-     * @param anObjectKey object key
-     * @param someProperties object properties
-     * @param anObject object data
-     * @param anExpirationTime expiration time
-     * @return object meta data
-     * @throws ObjCacheException
-     */
-    ObjCacheEntityMeta update(
-        String aCollection,
-        String anObjectKey,
-        Map<String, Object> someProperties,
-        Object anObject,
-        ZonedDateTime anExpirationTime)
-        throws ObjCacheException;
-
 }

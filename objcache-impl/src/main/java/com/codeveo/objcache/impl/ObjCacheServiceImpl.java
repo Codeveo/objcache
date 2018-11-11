@@ -28,6 +28,7 @@ import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Table;
+import org.jooq.UpdateSetMoreStep;
 import org.jooq.conf.ParamType;
 import org.jooq.impl.DSL;
 import org.slf4j.Logger;
@@ -96,28 +97,30 @@ public class ObjCacheServiceImpl implements ObjCacheService {
      */
     @Override
     public long countByCollection(final String aCollection) throws ObjCacheException {
-        try {
-            Validate.notBlank(aCollection, "Collection must be not blank");
+        return txTemplate.execute(aStatus -> {
+            try {
+                Validate.notBlank(aCollection, "Collection must be not blank");
 
-            final String theQuery =
-                DSL
-                    .selectCount()
-                    .from(TABLE)
-                    .where(COL_COLLECTION_ID.eq(aCollection))
-                    .and(conditionExpiredRecs(ZonedDateTime.now()))
-                    .getSQL(ParamType.INLINED);
+                final String theQuery =
+                    DSL
+                        .selectCount()
+                        .from(TABLE)
+                        .where(COL_COLLECTION_ID.eq(aCollection))
+                        .and(conditionExpiredRecs(ZonedDateTime.now()))
+                        .getSQL(ParamType.INLINED);
 
-            LOGGER.debug("Running query '{}'", theQuery);
+                LOGGER.debug("Running query '{}'", theQuery);
 
-            return jdbcTemplate.queryForObject(theQuery, long.class);
-        } catch (final ObjCacheException anException) {
-            throw anException;
-        } catch (final Exception anException) {
-            throw new ObjCacheException(
-                ObjCacheErrorCodeType.OBJCACHE_EC_0006,
-                anException,
-                "Error occured while running query for collection '" + aCollection + "'");
-        }
+                return jdbcTemplate.queryForObject(theQuery, long.class);
+            } catch (final ObjCacheException anException) {
+                throw anException;
+            } catch (final Exception anException) {
+                throw new ObjCacheException(
+                    ObjCacheErrorCodeType.OBJCACHE_EC_0006,
+                    anException,
+                    "Error occured while running query for collection '" + aCollection + "'");
+            }
+        });
     }
 
     /**
@@ -129,29 +132,36 @@ public class ObjCacheServiceImpl implements ObjCacheService {
     @Override
     public long countByProperties(final String aCollection, final Map<String, Object> someProperties)
         throws ObjCacheException {
-        try {
-            Validate.notBlank(aCollection, "Collection must be not blank");
+        return txTemplate.execute(aStatus -> {
+            try {
+                Validate.notBlank(aCollection, "Collection must be not blank");
 
-            final String theQuery =
-                DSL
-                    .selectCount()
-                    .from(TABLE)
-                    .where(COL_COLLECTION_ID.eq(aCollection))
-                    .and(DSL.condition("{0} @> {1}", COL_OBJECT_PROPERTIES, MAPPER.writeValueAsString(someProperties)))
-                    .and(conditionExpiredRecs(ZonedDateTime.now()))
-                    .getSQL(ParamType.INLINED);
+                final String theQuery =
+                    DSL
+                        .selectCount()
+                        .from(TABLE)
+                        .where(COL_COLLECTION_ID.eq(aCollection))
+                        .and(
+                            DSL
+                                .condition(
+                                    "{0} @> {1}",
+                                    COL_OBJECT_PROPERTIES,
+                                    MAPPER.writeValueAsString(someProperties)))
+                        .and(conditionExpiredRecs(ZonedDateTime.now()))
+                        .getSQL(ParamType.INLINED);
 
-            LOGGER.debug("Running query '{}'", theQuery);
+                LOGGER.debug("Running query '{}'", theQuery);
 
-            return jdbcTemplate.queryForObject(theQuery, long.class);
-        } catch (final ObjCacheException anException) {
-            throw anException;
-        } catch (final Exception anException) {
-            throw new ObjCacheException(
-                ObjCacheErrorCodeType.OBJCACHE_EC_0006,
-                anException,
-                "Error occured while running query for collection '" + aCollection + "'");
-        }
+                return jdbcTemplate.queryForObject(theQuery, long.class);
+            } catch (final ObjCacheException anException) {
+                throw anException;
+            } catch (final Exception anException) {
+                throw new ObjCacheException(
+                    ObjCacheErrorCodeType.OBJCACHE_EC_0006,
+                    anException,
+                    "Error occured while running query for collection '" + aCollection + "'");
+            }
+        });
     }
 
     /**
@@ -206,33 +216,35 @@ public class ObjCacheServiceImpl implements ObjCacheService {
      *      java.lang.String)
      */
     @Override
-    public long delete(final String aCollection, final String anObjectKey) throws ObjCacheException {
-        try {
-            Validate.notBlank(aCollection, "Collection must be not blank");
-            Validate.notBlank(anObjectKey, "Object key must be not blank");
+    public int delete(final String aCollection, final String anObjectKey) throws ObjCacheException {
+        return txTemplate.execute(aStatus -> {
+            try {
+                Validate.notBlank(aCollection, "Collection must be not blank");
+                Validate.notBlank(anObjectKey, "Object key must be not blank");
 
-            final String theQuery =
-                DSL
-                    .deleteFrom(TABLE)
-                    .where(COL_COLLECTION_ID.eq(aCollection))
-                    .and(COL_OBJECT_KEY.eq(anObjectKey))
-                    .getSQL(ParamType.INLINED);
+                final String theQuery =
+                    DSL
+                        .deleteFrom(TABLE)
+                        .where(COL_COLLECTION_ID.eq(aCollection))
+                        .and(COL_OBJECT_KEY.eq(anObjectKey))
+                        .getSQL(ParamType.INLINED);
 
-            LOGGER.debug("Running query '{}'", theQuery);
+                LOGGER.debug("Running query '{}'", theQuery);
 
-            return jdbcTemplate.update(theQuery);
-        } catch (final ObjCacheException anException) {
-            throw anException;
-        } catch (final Exception anException) {
-            throw new ObjCacheException(
-                ObjCacheErrorCodeType.OBJCACHE_EC_0006,
-                anException,
-                "Error occured while running delete query for collection '"
-                    + aCollection
-                    + "' and object key '"
-                    + anObjectKey
-                    + "'");
-        }
+                return jdbcTemplate.update(theQuery);
+            } catch (final ObjCacheException anException) {
+                throw anException;
+            } catch (final Exception anException) {
+                throw new ObjCacheException(
+                    ObjCacheErrorCodeType.OBJCACHE_EC_0006,
+                    anException,
+                    "Error occured while running delete query for collection '"
+                        + aCollection
+                        + "' and object key '"
+                        + anObjectKey
+                        + "'");
+            }
+        });
     }
 
     /**
@@ -241,24 +253,26 @@ public class ObjCacheServiceImpl implements ObjCacheService {
      * @see com.codeveo.objcache.api.ObjCacheService#deleteByCollection(com.codeveo.objcache.api.String)
      */
     @Override
-    public long deleteByCollection(final String aCollection) throws ObjCacheException {
-        try {
-            Validate.notBlank(aCollection, "Collection must be not blank");
+    public int deleteByCollection(final String aCollection) throws ObjCacheException {
+        return txTemplate.execute(aStatus -> {
+            try {
+                Validate.notBlank(aCollection, "Collection must be not blank");
 
-            final String theQuery =
-                DSL.deleteFrom(TABLE).where(COL_COLLECTION_ID.eq(aCollection)).getSQL(ParamType.INLINED);
+                final String theQuery =
+                    DSL.deleteFrom(TABLE).where(COL_COLLECTION_ID.eq(aCollection)).getSQL(ParamType.INLINED);
 
-            LOGGER.debug("Running query '{}'", theQuery);
+                LOGGER.debug("Running query '{}'", theQuery);
 
-            return jdbcTemplate.update(theQuery);
-        } catch (final ObjCacheException anException) {
-            throw anException;
-        } catch (final Exception anException) {
-            throw new ObjCacheException(
-                ObjCacheErrorCodeType.OBJCACHE_EC_0006,
-                anException,
-                "Error occured while running delete query objects for collection '" + aCollection + "'");
-        }
+                return jdbcTemplate.update(theQuery);
+            } catch (final ObjCacheException anException) {
+                throw anException;
+            } catch (final Exception anException) {
+                throw new ObjCacheException(
+                    ObjCacheErrorCodeType.OBJCACHE_EC_0006,
+                    anException,
+                    "Error occured while running delete query objects for collection '" + aCollection + "'");
+            }
+        });
     }
 
     /**
@@ -268,33 +282,40 @@ public class ObjCacheServiceImpl implements ObjCacheService {
      *      java.lang.String)
      */
     @Override
-    public long deleteByProperties(final String aCollection, Map<String, Object> someProperties)
+    public int deleteByProperties(final String aCollection, Map<String, Object> someProperties)
         throws ObjCacheException {
-        try {
-            Validate.notBlank(aCollection, "Collection must be not blank");
+        return txTemplate.execute(aStatus -> {
+            try {
+                Validate.notBlank(aCollection, "Collection must be not blank");
 
-            final String theQuery =
-                DSL
-                    .deleteFrom(TABLE)
-                    .where(COL_COLLECTION_ID.eq(aCollection))
-                    .and(DSL.condition("{0} @> {1}", COL_OBJECT_PROPERTIES, MAPPER.writeValueAsString(someProperties)))
-                    .getSQL(ParamType.INLINED);
+                final String theQuery =
+                    DSL
+                        .deleteFrom(TABLE)
+                        .where(COL_COLLECTION_ID.eq(aCollection))
+                        .and(
+                            DSL
+                                .condition(
+                                    "{0} @> {1}",
+                                    COL_OBJECT_PROPERTIES,
+                                    MAPPER.writeValueAsString(someProperties)))
+                        .getSQL(ParamType.INLINED);
 
-            LOGGER.debug("Running query '{}'", theQuery);
+                LOGGER.debug("Running query '{}'", theQuery);
 
-            return jdbcTemplate.update(theQuery);
-        } catch (final ObjCacheException anException) {
-            throw anException;
-        } catch (final Exception anException) {
-            throw new ObjCacheException(
-                ObjCacheErrorCodeType.OBJCACHE_EC_0006,
-                anException,
-                "Error occured while running delete query objects for collection '"
-                    + aCollection
-                    + "' and propeties '"
-                    + someProperties
-                    + "'");
-        }
+                return jdbcTemplate.update(theQuery);
+            } catch (final ObjCacheException anException) {
+                throw anException;
+            } catch (final Exception anException) {
+                throw new ObjCacheException(
+                    ObjCacheErrorCodeType.OBJCACHE_EC_0006,
+                    anException,
+                    "Error occured while running delete query objects for collection '"
+                        + aCollection
+                        + "' and propeties '"
+                        + someProperties
+                        + "'");
+            }
+        });
     }
 
     /**
@@ -306,32 +327,38 @@ public class ObjCacheServiceImpl implements ObjCacheService {
     @Override
     public <T> Optional<T> find(final String aCollection, final String anObjectKey, Class<T> aClass)
         throws ObjCacheException {
-        try {
-            final String theQuery =
-                DSL
-                    .selectFrom(TABLE)
-                    .where(COL_COLLECTION_ID.eq(aCollection))
-                    .and(COL_OBJECT_KEY.eq(anObjectKey))
-                    .and(conditionExpiredRecs(ZonedDateTime.now()))
-                    .getSQL(ParamType.INLINED);
+        return txTemplate.execute(aStatus -> {
+            try {
+                final String theQuery =
+                    DSL
+                        .selectFrom(TABLE)
+                        .where(COL_COLLECTION_ID.eq(aCollection))
+                        .and(COL_OBJECT_KEY.eq(anObjectKey))
+                        .and(conditionExpiredRecs(ZonedDateTime.now()))
+                        .getSQL(ParamType.INLINED);
 
-            LOGGER.debug("Running query '{}'", theQuery);
+                LOGGER.debug("Running query '{}'", theQuery);
 
-            final T theObjectData = jdbcTemplate.queryForObject(theQuery, (aRowMapper, aRowNum) -> {
-                final String theColObjectData = aRowMapper.getString(COL_OBJECT_DATA.getName());
-                final SerializerType theSerializerType =
-                    SerializerType.valueOf(aRowMapper.getString(COL_SERIALIZER_TYPE.getName()));
-                return objSerDerFactory
-                    .getSerializer(theSerializerType)
-                    .deserialize(aCollection, anObjectKey, theColObjectData, aClass);
-            });
+                final T theObjectData = jdbcTemplate.queryForObject(theQuery, (aRowMapper, aRowNum) -> {
+                    final String theColObjectData = aRowMapper.getString(COL_OBJECT_DATA.getName());
+                    final SerializerType theSerializerType =
+                        SerializerType.valueOf(aRowMapper.getString(COL_SERIALIZER_TYPE.getName()));
+                    return objSerDerFactory
+                        .getSerializer(theSerializerType)
+                        .deserialize(aCollection, anObjectKey, theColObjectData, aClass);
+                });
 
-            return Optional.ofNullable(theObjectData);
-        } catch (final ObjCacheException anException) {
-            throw anException;
-        } catch (final Exception anException) {
-            throw new ObjCacheException(ObjCacheErrorCodeType.OBJCACHE_EC_0005, anException, anObjectKey, aCollection);
-        }
+                return Optional.ofNullable(theObjectData);
+            } catch (final ObjCacheException anException) {
+                throw anException;
+            } catch (final Exception anException) {
+                throw new ObjCacheException(
+                    ObjCacheErrorCodeType.OBJCACHE_EC_0005,
+                    anException,
+                    anObjectKey,
+                    aCollection);
+            }
+        });
     }
 
     /**
@@ -341,36 +368,38 @@ public class ObjCacheServiceImpl implements ObjCacheService {
      */
     @Override
     public <T> List<T> findByCollection(final String aCollection, Class<T> aClass) throws ObjCacheException {
-        try {
-            Validate.notBlank(aCollection, "Collection must be not blank");
-            final String theQuery =
-                DSL
-                    .selectFrom(TABLE)
-                    .where(COL_COLLECTION_ID.eq(aCollection))
-                    .and(conditionExpiredRecs(ZonedDateTime.now()))
-                    .getSQL(ParamType.INLINED);
+        return txTemplate.execute(aStatus -> {
+            try {
+                Validate.notBlank(aCollection, "Collection must be not blank");
+                final String theQuery =
+                    DSL
+                        .selectFrom(TABLE)
+                        .where(COL_COLLECTION_ID.eq(aCollection))
+                        .and(conditionExpiredRecs(ZonedDateTime.now()))
+                        .getSQL(ParamType.INLINED);
 
-            LOGGER.debug("Running query '{}'", theQuery);
+                LOGGER.debug("Running query '{}'", theQuery);
 
-            final List<T> theObjectsList = jdbcTemplate.query(theQuery, (aRowMapper, aRowNum) -> {
-                final String theColObjectData = aRowMapper.getString(COL_OBJECT_DATA.getName());
-                final String theObjectKey = aRowMapper.getString(COL_OBJECT_KEY.getName());
-                final SerializerType theSerializerType =
-                    SerializerType.valueOf(aRowMapper.getString(COL_SERIALIZER_TYPE.getName()));
-                return objSerDerFactory
-                    .getSerializer(theSerializerType)
-                    .deserialize(aCollection, theObjectKey, theColObjectData, aClass);
-            });
+                final List<T> theObjectsList = jdbcTemplate.query(theQuery, (aRowMapper, aRowNum) -> {
+                    final String theColObjectData = aRowMapper.getString(COL_OBJECT_DATA.getName());
+                    final String theObjectKey = aRowMapper.getString(COL_OBJECT_KEY.getName());
+                    final SerializerType theSerializerType =
+                        SerializerType.valueOf(aRowMapper.getString(COL_SERIALIZER_TYPE.getName()));
+                    return objSerDerFactory
+                        .getSerializer(theSerializerType)
+                        .deserialize(aCollection, theObjectKey, theColObjectData, aClass);
+                });
 
-            return theObjectsList;
-        } catch (final ObjCacheException anException) {
-            throw anException;
-        } catch (final Exception anException) {
-            throw new ObjCacheException(
-                ObjCacheErrorCodeType.OBJCACHE_EC_0006,
-                anException,
-                "Error occured while running query objects for collection '" + aCollection + "'");
-        }
+                return theObjectsList;
+            } catch (final ObjCacheException anException) {
+                throw anException;
+            } catch (final Exception anException) {
+                throw new ObjCacheException(
+                    ObjCacheErrorCodeType.OBJCACHE_EC_0006,
+                    anException,
+                    "Error occured while running query objects for collection '" + aCollection + "'");
+            }
+        });
     }
 
     /**
@@ -385,38 +414,45 @@ public class ObjCacheServiceImpl implements ObjCacheService {
         final Map<String, Object> someProperties,
         Class<T> aClass)
         throws ObjCacheException {
-        try {
-            Validate.notBlank(aCollection, "Collection must be not blank");
+        return txTemplate.execute(aStatus -> {
+            try {
+                Validate.notBlank(aCollection, "Collection must be not blank");
 
-            final String theQuery =
-                DSL
-                    .selectFrom(TABLE)
-                    .where(COL_COLLECTION_ID.eq(aCollection))
-                    .and(DSL.condition("{0} @> {1}", COL_OBJECT_PROPERTIES, MAPPER.writeValueAsString(someProperties)))
-                    .and(conditionExpiredRecs(ZonedDateTime.now()))
-                    .getSQL(ParamType.INLINED);
+                final String theQuery =
+                    DSL
+                        .selectFrom(TABLE)
+                        .where(COL_COLLECTION_ID.eq(aCollection))
+                        .and(
+                            DSL
+                                .condition(
+                                    "{0} @> {1}",
+                                    COL_OBJECT_PROPERTIES,
+                                    MAPPER.writeValueAsString(someProperties)))
+                        .and(conditionExpiredRecs(ZonedDateTime.now()))
+                        .getSQL(ParamType.INLINED);
 
-            LOGGER.debug("Running query '{}'", theQuery);
+                LOGGER.debug("Running query '{}'", theQuery);
 
-            final List<T> theObjectsList = jdbcTemplate.query(theQuery, (aRowMapper, aRowNum) -> {
-                final String theColObjectData = aRowMapper.getString(COL_OBJECT_DATA.getName());
-                final String theObjectKey = aRowMapper.getString(COL_OBJECT_KEY.getName());
-                final SerializerType theSerializerType =
-                    SerializerType.valueOf(aRowMapper.getString(COL_SERIALIZER_TYPE.getName()));
-                return objSerDerFactory
-                    .getSerializer(theSerializerType)
-                    .deserialize(aCollection, theObjectKey, theColObjectData, aClass);
-            });
+                final List<T> theObjectsList = jdbcTemplate.query(theQuery, (aRowMapper, aRowNum) -> {
+                    final String theColObjectData = aRowMapper.getString(COL_OBJECT_DATA.getName());
+                    final String theObjectKey = aRowMapper.getString(COL_OBJECT_KEY.getName());
+                    final SerializerType theSerializerType =
+                        SerializerType.valueOf(aRowMapper.getString(COL_SERIALIZER_TYPE.getName()));
+                    return objSerDerFactory
+                        .getSerializer(theSerializerType)
+                        .deserialize(aCollection, theObjectKey, theColObjectData, aClass);
+                });
 
-            return theObjectsList;
-        } catch (final ObjCacheException anException) {
-            throw anException;
-        } catch (final Exception anException) {
-            throw new ObjCacheException(
-                ObjCacheErrorCodeType.OBJCACHE_EC_0006,
-                anException,
-                "Error occured while running query objects for collection '" + aCollection + "'");
-        }
+                return theObjectsList;
+            } catch (final ObjCacheException anException) {
+                throw anException;
+            } catch (final Exception anException) {
+                throw new ObjCacheException(
+                    ObjCacheErrorCodeType.OBJCACHE_EC_0006,
+                    anException,
+                    "Error occured while running query objects for collection '" + aCollection + "'");
+            }
+        });
     }
 
     /**
@@ -435,86 +471,16 @@ public class ObjCacheServiceImpl implements ObjCacheService {
         final Object anObject,
         final ZonedDateTime anExpirationTime)
         throws ObjCacheException {
-        try {
-            Validate.notBlank(aCollection, "Collection must be not blank");
-            Validate.notBlank(anObjectKey, "Object key must be not blank");
-            Validate.isTrue(aVersion != null && aVersion > 0, "Version must be a positive number");
-
-            final String theQueryVersioSerType =
-                DSL
-                    .select(COL_VERSION, COL_SERIALIZER_TYPE)
-                    .from(TABLE)
-                    .where(COL_COLLECTION_ID.eq(aCollection))
-                    .and(COL_OBJECT_KEY.eq(anObjectKey))
-                    .and(conditionExpiredRecs(ZonedDateTime.now()))
-                    .getSQL(ParamType.INLINED);
-
-            final List<Map<String, Object>> theObjectData = jdbcTemplate.queryForList(theQueryVersioSerType);
-            if (theObjectData == null || theObjectData.isEmpty()) {
-                throw new ObjCacheException(
-                    ObjCacheErrorCodeType.OBJCACHE_EC_0006,
-                    String
-                        .format(
-                            "The object with collection %s and key %s not found (deleted or expired)",
-                            aCollection,
-                            anObjectKey));
-            }
-
-            final Integer theCurrentVersion = (Integer) theObjectData.get(0).get(COL_VERSION.getName());
-            if (!theCurrentVersion.equals(aVersion)) {
-                throw new ObjCacheException(
-                    ObjCacheErrorCodeType.OBJCACHE_EC_0002,
-                    String
-                        .format(
-                            "The object with collection %s and key %s has been deleted or expired",
-                            aCollection,
-                            anObjectKey));
-            }
-
-            final SerializerType theSerializerType =
-                SerializerType.valueOf((String) theObjectData.get(0).get(COL_SERIALIZER_TYPE.getName()));
-            final String theProps = MAPPER.writeValueAsString(someProperties);
-            final String theObjDataSerialized =
-                serializeObjectData(aCollection, anObjectKey, theSerializerType, anObject);
-            final Integer theNewVersion = aVersion + 1;
-
-            final String theQuery =
-                DSL
-                    .update(TABLE)
-                    // .set(DSL.field(DSL.name("version"), Integer.class), theNewVersion)
-                    .set(COL_VERSION, theNewVersion)
-                    .set(COL_OBJECT_PROPERTIES, theProps)
-                    .set(
-                        COL_EXPIRATION_TIME,
-                        anExpirationTime != null
-                            ? ObjCacheCommonUtils.formatDateTimeWithZoneSameInstant(anExpirationTime, ZoneId.of("UTC"))
-                            : null)
-                    .set(COL_OBJECT_DATA, theObjDataSerialized)
-                    .where(COL_VERSION.eq(aVersion))
-                    .and(conditionExpiredRecs(ZonedDateTime.now()))
-                    .getSQL(ParamType.INLINED);
-
-            LOGGER.debug("Running query '{}'", theQuery);
-
-            final long theCount = jdbcTemplate.update(theQuery);
-
-            if (theCount > 1) {
-                throw new ObjCacheException(ObjCacheErrorCodeType.OBJCACHE_EC_0007, anObjectKey, aCollection);
-            }
-
-            if (theCount != 1) {
-                throw new ObjCacheException(ObjCacheErrorCodeType.OBJCACHE_EC_0002, anObjectKey, aCollection);
-            }
-
-            return new ObjCacheEntityMeta(aCollection, anObjectKey, theSerializerType, theNewVersion, anExpirationTime);
-        } catch (final ObjCacheException anException) {
-            throw anException;
-        } catch (final Exception anException) {
-            throw new ObjCacheException(
-                ObjCacheErrorCodeType.OBJCACHE_EC_0006,
-                anException,
-                "Error occured while running query objects for collection '" + aCollection + "'");
-        }
+        return txTemplate
+            .execute(
+                aStatus -> updateCommon(
+                    aCollection,
+                    anObjectKey,
+                    aVersion,
+                    someProperties,
+                    anObject,
+                    true,
+                    anExpirationTime));
     }
 
     /**
@@ -531,42 +497,9 @@ public class ObjCacheServiceImpl implements ObjCacheService {
         final Integer aVersion,
         final Object anObject)
         throws ObjCacheException {
-        throw new ObjCacheException(ObjCacheErrorCodeType.OBJCACHE_EC_0001, "update with specified version");
-    }
-
-    /**
-     * Overrides an inherit method or implements an abstract method.
-     *
-     * @see com.codeveo.objcache.api.ObjCacheService#update(com.codeveo.objcache.api.String,
-     *      java.lang.String, java.util.Map, java.io.Object)
-     */
-    @Override
-    public ObjCacheEntityMeta update(
-        final String aCollection,
-        final String anObjectKey,
-        final Map<String, Object> someProperties,
-        final Object anObject)
-        throws ObjCacheException {
-        // TODO Ladislav Klenovic, 19. 10. 2018: Implement method ObjCacheService.update
-        return null;
-    }
-
-    /**
-     * Overrides an inherit method or implements an abstract method.
-     *
-     * @see com.codeveo.objcache.api.ObjCacheService#update(com.codeveo.objcache.api.String,
-     *      java.lang.String, java.util.Map, java.io.Object, java.time.ZonedDateTime)
-     */
-    @Override
-    public ObjCacheEntityMeta update(
-        final String aCollection,
-        final String anObjectKey,
-        final Map<String, Object> someProperties,
-        final Object anObject,
-        final ZonedDateTime anExpirationTime)
-        throws ObjCacheException {
-        // TODO Ladislav Klenovic, 19. 10. 2018: Implement method ObjCacheService.update
-        return null;
+        return txTemplate
+            .execute(
+                aStatus -> updateCommon(aCollection, anObjectKey, aVersion, someProperties, anObject, false, null));
     }
 
     private ObjCacheEntityMeta createCommon(
@@ -639,5 +572,101 @@ public class ObjCacheServiceImpl implements ObjCacheService {
             .or(
                 COL_EXPIRATION_TIME
                     .gt(ObjCacheCommonUtils.formatDateTimeWithZoneSameInstant(aCurrentDateTime, ZoneId.of("UTC"))));
+    }
+
+    private ObjCacheEntityMeta updateCommon(
+        final String aCollection,
+        final String anObjectKey,
+        final Integer aVersion,
+        final Map<String, Object> someProperties,
+        final Object anObject,
+        boolean withExpTime,
+        final ZonedDateTime anExpirationTime) {
+        try {
+            Validate.notBlank(aCollection, "Collection must be not blank");
+            Validate.notBlank(anObjectKey, "Object key must be not blank");
+            Validate.isTrue(aVersion != null && aVersion > 0, "Version must be a positive number");
+
+            final String theQueryVersioSerType =
+                DSL
+                    .select(COL_VERSION, COL_SERIALIZER_TYPE)
+                    .from(TABLE)
+                    .where(COL_COLLECTION_ID.eq(aCollection))
+                    .and(COL_OBJECT_KEY.eq(anObjectKey))
+                    .and(conditionExpiredRecs(ZonedDateTime.now()))
+                    .getSQL(ParamType.INLINED);
+
+            final List<Map<String, Object>> theObjectData = jdbcTemplate.queryForList(theQueryVersioSerType);
+            if (theObjectData == null || theObjectData.isEmpty()) {
+                throw new ObjCacheException(
+                    ObjCacheErrorCodeType.OBJCACHE_EC_0006,
+                    String
+                        .format(
+                            "The object with collection %s and key %s not found (deleted or expired)",
+                            aCollection,
+                            anObjectKey));
+            }
+
+            final Integer theCurrentVersion = (Integer) theObjectData.get(0).get(COL_VERSION.getName());
+            if (!theCurrentVersion.equals(aVersion)) {
+                throw new ObjCacheException(
+                    ObjCacheErrorCodeType.OBJCACHE_EC_0002,
+                    String
+                        .format(
+                            "The object with collection %s and key %s has been deleted or expired",
+                            aCollection,
+                            anObjectKey));
+            }
+
+            final SerializerType theSerializerType =
+                SerializerType.valueOf((String) theObjectData.get(0).get(COL_SERIALIZER_TYPE.getName()));
+            final String theProps = MAPPER.writeValueAsString(someProperties);
+            final String theObjDataSerialized =
+                serializeObjectData(aCollection, anObjectKey, theSerializerType, anObject);
+            final Integer theNewVersion = aVersion + 1;
+
+            final UpdateSetMoreStep<Record> theQuerybuilder =
+                DSL
+                    .update(TABLE)
+                    .set(COL_VERSION, theNewVersion)
+                    .set(COL_OBJECT_PROPERTIES, theProps)
+                    .set(COL_OBJECT_DATA, theObjDataSerialized);
+
+            if (withExpTime) {
+                theQuerybuilder
+                    .set(
+                        COL_EXPIRATION_TIME,
+                        anExpirationTime != null
+                            ? ObjCacheCommonUtils.formatDateTimeWithZoneSameInstant(anExpirationTime, ZoneId.of("UTC"))
+                            : null);
+            }
+
+            final String theQuery =
+                theQuerybuilder
+                    .where(COL_VERSION.eq(aVersion))
+                    .and(conditionExpiredRecs(ZonedDateTime.now()))
+                    .getSQL(ParamType.INLINED);
+
+            LOGGER.debug("Running query '{}'", theQuery);
+
+            final long theCount = jdbcTemplate.update(theQuery);
+
+            if (theCount > 1) {
+                throw new ObjCacheException(ObjCacheErrorCodeType.OBJCACHE_EC_0007, anObjectKey, aCollection);
+            }
+
+            if (theCount != 1) {
+                throw new ObjCacheException(ObjCacheErrorCodeType.OBJCACHE_EC_0002, anObjectKey, aCollection);
+            }
+
+            return new ObjCacheEntityMeta(aCollection, anObjectKey, theSerializerType, theNewVersion, anExpirationTime);
+        } catch (final ObjCacheException anException) {
+            throw anException;
+        } catch (final Exception anException) {
+            throw new ObjCacheException(
+                ObjCacheErrorCodeType.OBJCACHE_EC_0006,
+                anException,
+                "Error occured while running query objects for collection '" + aCollection + "'");
+        }
     }
 }
