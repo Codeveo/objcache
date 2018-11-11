@@ -51,5 +51,10 @@ public enum ObjCacheErrorCodeType {
     /**
      * Query error
      */
-    OBJCACHE_EC_0006
+    OBJCACHE_EC_0006,
+
+    /**
+     * Multiple object update
+     */
+    OBJCACHE_EC_0007
 }

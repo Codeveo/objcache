@@ -158,7 +158,7 @@ public interface ObjCacheService {
     ObjCacheEntityMeta update(
         String aCollection,
         String anObjectKey,
-        Long aVersion,
+        Integer aVersion,
         Map<String, Object> someProperties,
         Object anObject,
         ZonedDateTime anExpirationTime)
@@ -180,7 +180,7 @@ public interface ObjCacheService {
         String aCollection,
         String anObjectKey,
         Map<String, Object> someProperties,
-        Long aVersion,
+        Integer aVersion,
         Object anObject)
         throws ObjCacheException;
 

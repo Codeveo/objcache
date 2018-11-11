@@ -56,7 +56,7 @@ public class ObjCacheServiceImplTest extends AbstractTransactionalTestNGSpringCo
         Assert.assertNotNull(theMeta.getCollection());
         Assert.assertNotNull(theMeta.getSerializerType());
         Assert.assertNotNull(theMeta.getObjectKey());
-        Assert.assertNotNull(theMeta.getVersion());
+        Assert.assertEquals(theMeta.getVersion().intValue(), 1);
         Assert.assertNull(theMeta.getExpirationTime());
 
         final Optional<TestObj> theTestObj = objCacheService.find(TestObj.COLLECTION, "test1", TestObj.class);
@@ -423,5 +423,44 @@ public class ObjCacheServiceImplTest extends AbstractTransactionalTestNGSpringCo
         final long theDeletedCount =
             objCacheService.deleteByProperties(TestObj.COLLECTION, ImmutableMap.of("delete", true));
         Assert.assertEquals(theDeletedCount, 2);
+    }
+
+    @Test
+    @DirtiesContext
+    public void testUpdate1() {
+        final TestObj theTestObj = new TestObj("a", 1, ImmutableMap.of("k1", 1, "k2", "v2"));
+        final ObjCacheEntityMeta theMeta1 =
+            objCacheService
+                .create(
+                    TestObj.COLLECTION,
+                    "test1",
+                    SerializerType.JSON,
+                    ImmutableMap.of("a", 1, "b", "text"),
+                    theTestObj);
+        Assert.assertNotNull(theMeta1.getCollection());
+        Assert.assertNotNull(theMeta1.getSerializerType());
+        Assert.assertNotNull(theMeta1.getObjectKey());
+        Assert.assertNotNull(theMeta1.getVersion());
+        Assert.assertNull(theMeta1.getExpirationTime());
+
+        final Optional<TestObj> theStoredObj = objCacheService.find(TestObj.COLLECTION, "test1", TestObj.class);
+        Assert.assertTrue(theStoredObj.isPresent());
+        Assert.assertEquals(theStoredObj.get(), theTestObj);
+
+        final TestObj theTestObjUpdated = new TestObj("b", 2, ImmutableMap.of("k1", 2, "k2", "v3"));
+        final ObjCacheEntityMeta theUpdatedMeta1 =
+            objCacheService
+                .update(
+                    TestObj.COLLECTION,
+                    "test1",
+                    1,
+                    ImmutableMap.of("a", 2, "b", "text", "c", 3),
+                    theTestObjUpdated,
+                    null);
+        Assert.assertEquals(theUpdatedMeta1.getVersion().intValue(), 2L);
+
+        final Optional<TestObj> theStoredObj1 = objCacheService.find(TestObj.COLLECTION, "test1", TestObj.class);
+        Assert.assertTrue(theStoredObj1.isPresent());
+        Assert.assertEquals(theStoredObj1.get(), theTestObjUpdated);
     }
 }

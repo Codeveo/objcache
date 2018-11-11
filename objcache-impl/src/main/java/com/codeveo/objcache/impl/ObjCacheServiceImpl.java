@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.apache.commons.lang3.Validate;
+import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Table;
@@ -57,25 +58,21 @@ public class ObjCacheServiceImpl implements ObjCacheService {
 
     private static final Table<Record> TABLE = DSL.table(DSL.name(TABLE_NAME));
 
-    private static final Field<Long> COL_ID = DSL.field(DSL.name(TABLE_NAME, "id"), Long.class);
+    private static final Field<Long> COL_ID = DSL.field(DSL.name("id"), Long.class);
 
-    private static final Field<String> COL_COLLECTION_ID =
-        DSL.field(DSL.name(TABLE_NAME, "collection_id"), String.class);
+    private static final Field<String> COL_COLLECTION_ID = DSL.field(DSL.name("collection_id"), String.class);
 
-    private static final Field<String> COL_OBJECT_KEY = DSL.field(DSL.name(TABLE_NAME, "object_key"), String.class);
+    private static final Field<String> COL_OBJECT_KEY = DSL.field(DSL.name("object_key"), String.class);
 
-    private static final Field<Integer> COL_VERSION = DSL.field(DSL.name(TABLE_NAME, "version"), Integer.class);
+    private static final Field<Integer> COL_VERSION = DSL.field(DSL.name("version"), Integer.class);
 
-    private static final Field<String> COL_OBJECT_DATA = DSL.field(DSL.name(TABLE_NAME, "object_data"), String.class);
+    private static final Field<String> COL_OBJECT_DATA = DSL.field(DSL.name("object_data"), String.class);
 
-    private static final Field<String> COL_SERIALIZER_TYPE =
-        DSL.field(DSL.name(TABLE_NAME, "serializer_type"), String.class);
+    private static final Field<String> COL_SERIALIZER_TYPE = DSL.field(DSL.name("serializer_type"), String.class);
 
-    private static final Field<String> COL_OBJECT_PROPERTIES =
-        DSL.field(DSL.name(TABLE_NAME, "properties"), String.class);
+    private static final Field<String> COL_OBJECT_PROPERTIES = DSL.field(DSL.name("properties"), String.class);
 
-    private static final Field<String> COL_EXPIRATION_TIME =
-        DSL.field(DSL.name(TABLE_NAME, "expiration_time"), String.class);
+    private static final Field<String> COL_EXPIRATION_TIME = DSL.field(DSL.name("expiration_time"), String.class);
 
     private final TransactionTemplate txTemplate;
 
@@ -103,7 +100,12 @@ public class ObjCacheServiceImpl implements ObjCacheService {
             Validate.notBlank(aCollection, "Collection must be not blank");
 
             final String theQuery =
-                DSL.selectCount().from(TABLE).where(COL_COLLECTION_ID.eq(aCollection)).getSQL(ParamType.INLINED);
+                DSL
+                    .selectCount()
+                    .from(TABLE)
+                    .where(COL_COLLECTION_ID.eq(aCollection))
+                    .and(conditionExpiredRecs(ZonedDateTime.now()))
+                    .getSQL(ParamType.INLINED);
 
             LOGGER.debug("Running query '{}'", theQuery);
 
@@ -136,6 +138,7 @@ public class ObjCacheServiceImpl implements ObjCacheService {
                     .from(TABLE)
                     .where(COL_COLLECTION_ID.eq(aCollection))
                     .and(DSL.condition("{0} @> {1}", COL_OBJECT_PROPERTIES, MAPPER.writeValueAsString(someProperties)))
+                    .and(conditionExpiredRecs(ZonedDateTime.now()))
                     .getSQL(ParamType.INLINED);
 
             LOGGER.debug("Running query '{}'", theQuery);
@@ -309,6 +312,7 @@ public class ObjCacheServiceImpl implements ObjCacheService {
                     .selectFrom(TABLE)
                     .where(COL_COLLECTION_ID.eq(aCollection))
                     .and(COL_OBJECT_KEY.eq(anObjectKey))
+                    .and(conditionExpiredRecs(ZonedDateTime.now()))
                     .getSQL(ParamType.INLINED);
 
             LOGGER.debug("Running query '{}'", theQuery);
@@ -340,7 +344,11 @@ public class ObjCacheServiceImpl implements ObjCacheService {
         try {
             Validate.notBlank(aCollection, "Collection must be not blank");
             final String theQuery =
-                DSL.selectFrom(TABLE).where(COL_COLLECTION_ID.eq(aCollection)).getSQL(ParamType.INLINED);
+                DSL
+                    .selectFrom(TABLE)
+                    .where(COL_COLLECTION_ID.eq(aCollection))
+                    .and(conditionExpiredRecs(ZonedDateTime.now()))
+                    .getSQL(ParamType.INLINED);
 
             LOGGER.debug("Running query '{}'", theQuery);
 
@@ -385,6 +393,7 @@ public class ObjCacheServiceImpl implements ObjCacheService {
                     .selectFrom(TABLE)
                     .where(COL_COLLECTION_ID.eq(aCollection))
                     .and(DSL.condition("{0} @> {1}", COL_OBJECT_PROPERTIES, MAPPER.writeValueAsString(someProperties)))
+                    .and(conditionExpiredRecs(ZonedDateTime.now()))
                     .getSQL(ParamType.INLINED);
 
             LOGGER.debug("Running query '{}'", theQuery);
@@ -421,12 +430,91 @@ public class ObjCacheServiceImpl implements ObjCacheService {
     public ObjCacheEntityMeta update(
         final String aCollection,
         final String anObjectKey,
-        final Long aVersion,
+        final Integer aVersion,
         final Map<String, Object> someProperties,
         final Object anObject,
         final ZonedDateTime anExpirationTime)
         throws ObjCacheException {
-        throw new ObjCacheException(ObjCacheErrorCodeType.OBJCACHE_EC_0001, "update with specified version");
+        try {
+            Validate.notBlank(aCollection, "Collection must be not blank");
+            Validate.notBlank(anObjectKey, "Object key must be not blank");
+            Validate.isTrue(aVersion != null && aVersion > 0, "Version must be a positive number");
+
+            final String theQueryVersioSerType =
+                DSL
+                    .select(COL_VERSION, COL_SERIALIZER_TYPE)
+                    .from(TABLE)
+                    .where(COL_COLLECTION_ID.eq(aCollection))
+                    .and(COL_OBJECT_KEY.eq(anObjectKey))
+                    .and(conditionExpiredRecs(ZonedDateTime.now()))
+                    .getSQL(ParamType.INLINED);
+
+            final List<Map<String, Object>> theObjectData = jdbcTemplate.queryForList(theQueryVersioSerType);
+            if (theObjectData == null || theObjectData.isEmpty()) {
+                throw new ObjCacheException(
+                    ObjCacheErrorCodeType.OBJCACHE_EC_0006,
+                    String
+                        .format(
+                            "The object with collection %s and key %s not found (deleted or expired)",
+                            aCollection,
+                            anObjectKey));
+            }
+
+            final Integer theCurrentVersion = (Integer) theObjectData.get(0).get(COL_VERSION.getName());
+            if (!theCurrentVersion.equals(aVersion)) {
+                throw new ObjCacheException(
+                    ObjCacheErrorCodeType.OBJCACHE_EC_0002,
+                    String
+                        .format(
+                            "The object with collection %s and key %s has been deleted or expired",
+                            aCollection,
+                            anObjectKey));
+            }
+
+            final SerializerType theSerializerType =
+                SerializerType.valueOf((String) theObjectData.get(0).get(COL_SERIALIZER_TYPE.getName()));
+            final String theProps = MAPPER.writeValueAsString(someProperties);
+            final String theObjDataSerialized =
+                serializeObjectData(aCollection, anObjectKey, theSerializerType, anObject);
+            final Integer theNewVersion = aVersion + 1;
+
+            final String theQuery =
+                DSL
+                    .update(TABLE)
+                    // .set(DSL.field(DSL.name("version"), Integer.class), theNewVersion)
+                    .set(COL_VERSION, theNewVersion)
+                    .set(COL_OBJECT_PROPERTIES, theProps)
+                    .set(
+                        COL_EXPIRATION_TIME,
+                        anExpirationTime != null
+                            ? ObjCacheCommonUtils.formatDateTimeWithZoneSameInstant(anExpirationTime, ZoneId.of("UTC"))
+                            : null)
+                    .set(COL_OBJECT_DATA, theObjDataSerialized)
+                    .where(COL_VERSION.eq(aVersion))
+                    .and(conditionExpiredRecs(ZonedDateTime.now()))
+                    .getSQL(ParamType.INLINED);
+
+            LOGGER.debug("Running query '{}'", theQuery);
+
+            final long theCount = jdbcTemplate.update(theQuery);
+
+            if (theCount > 1) {
+                throw new ObjCacheException(ObjCacheErrorCodeType.OBJCACHE_EC_0007, anObjectKey, aCollection);
+            }
+
+            if (theCount != 1) {
+                throw new ObjCacheException(ObjCacheErrorCodeType.OBJCACHE_EC_0002, anObjectKey, aCollection);
+            }
+
+            return new ObjCacheEntityMeta(aCollection, anObjectKey, theSerializerType, theNewVersion, anExpirationTime);
+        } catch (final ObjCacheException anException) {
+            throw anException;
+        } catch (final Exception anException) {
+            throw new ObjCacheException(
+                ObjCacheErrorCodeType.OBJCACHE_EC_0006,
+                anException,
+                "Error occured while running query objects for collection '" + aCollection + "'");
+        }
     }
 
     /**
@@ -440,7 +528,7 @@ public class ObjCacheServiceImpl implements ObjCacheService {
         final String aCollection,
         final String anObjectKey,
         final Map<String, Object> someProperties,
-        final Long aVersion,
+        final Integer aVersion,
         final Object anObject)
         throws ObjCacheException {
         throw new ObjCacheException(ObjCacheErrorCodeType.OBJCACHE_EC_0001, "update with specified version");
@@ -543,5 +631,13 @@ public class ObjCacheServiceImpl implements ObjCacheService {
         final ObjCacheSerializerDeserializer theSerializer = objSerDerFactory.getSerializer(aSerializerType);
 
         return theSerializer.serialize(aCollection, anObjectKey, anObject);
+    }
+
+    private Condition conditionExpiredRecs(ZonedDateTime aCurrentDateTime) {
+        return COL_EXPIRATION_TIME
+            .isNull()
+            .or(
+                COL_EXPIRATION_TIME
+                    .gt(ObjCacheCommonUtils.formatDateTimeWithZoneSameInstant(aCurrentDateTime, ZoneId.of("UTC"))));
     }
 }
