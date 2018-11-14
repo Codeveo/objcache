@@ -46,10 +46,10 @@ Simple object store. Each object is stored under given collection and with a giv
 	</beans>
 ````
 ### Built With ###
-[Maven](https://maven.apache.org/) - Dependency Management
+* [Maven](https://maven.apache.org/) - Dependency Management
 
 ### Authors ###
-Ladislav Klenovic - [Codeveo](http://www.codeveo.com/)
+* Ladislav Klenovic - [Codeveo](http://www.codeveo.com/)
 
 ### License ###
 This project is licensed under the Apache License v2.0 - see the *LICENSE* file for details
