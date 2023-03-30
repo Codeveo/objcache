@@ -30,7 +30,7 @@
         <commons.logging.version>1.2</commons.logging.version>
         <guava.version>29.0-jre</guava.version>
         <jackson.version>2.12.7.1</jackson.version>
-        <postgres.version>42.3.3</postgres.version>
+        <postgres.version>42.3.8</postgres.version>
 
         <!-- maven plugins -->
         <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
