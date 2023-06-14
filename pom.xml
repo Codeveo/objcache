@@ -28,7 +28,7 @@
         <commons.lang3.version>3.9</commons.lang3.version>
         <commons.io.version>2.7</commons.io.version>
         <commons.logging.version>1.2</commons.logging.version>
-        <guava.version>29.0-jre</guava.version>
+        <guava.version>32.0.0-jre</guava.version>
         <jackson.version>2.12.7.1</jackson.version>
         <postgres.version>42.3.8</postgres.version>
 
